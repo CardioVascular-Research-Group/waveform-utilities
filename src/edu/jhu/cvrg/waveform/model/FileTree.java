@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 import javax.faces.event.ActionEvent;
 
+import org.apache.log4j.Logger;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
 
@@ -38,20 +39,43 @@ public class FileTree implements Serializable{
 	private String newFolderName = "";
 	private ArrayList<StudyEntry> studyEntryList;
 	private String username;
-	StudyEntryUtility theDB;
+	private StudyEntryUtility theDB;
+	private String MISSING_VALUE = "0";
+	
+	static org.apache.log4j.Logger logger = Logger.getLogger(FileTree.class);
 
 	public FileTree (String username){
+		if(username == null){
+			logger.error("Username is null.");
+			return;
+		}
+		if(username.equals("")){
+			logger.error("Username is empty.");
+			return;
+		}
 		initialize(username);
 	}
 	
 	public void initialize(String username) {
 		this.username = username;
 		
-		theDB = new StudyEntryUtility(ResourceUtility.getDbUser(),
-				ResourceUtility.getDbPassword(), 
-				ResourceUtility.getDbURI(),	
-				ResourceUtility.getDbDriver(), 
-				ResourceUtility.getDbMainDatabase());
+		String dbUser = ResourceUtility.getDbUser();
+		String dbPassword = ResourceUtility.getDbPassword();
+		String dbUri = ResourceUtility.getDbURI();
+		String dbDriver = ResourceUtility.getDbDriver();
+		String dbMainDatabase = ResourceUtility.getDbMainDatabase();
+		
+		if(dbUser.equals(MISSING_VALUE) || 
+				dbPassword.equals(MISSING_VALUE) || 
+				dbUri.equals(MISSING_VALUE) || 
+				dbDriver.equals(MISSING_VALUE) ||
+				dbMainDatabase.equals(MISSING_VALUE)){
+			
+			logger.error("Missing one or more configuration values for the database.");
+			return;	
+		}
+
+		theDB = new StudyEntryUtility(dbUser, dbPassword, dbUri, dbDriver, dbMainDatabase);
 
 		if (treeRoot == null) {
 			buildTree();
@@ -61,7 +85,15 @@ public class FileTree implements Serializable{
 	private void buildTree() {
 
 		studyEntryList = theDB.getEntries(this.username);
-
+		
+		if(studyEntryList == null){
+			logger.error("Study Entry List is null.");
+			return;
+		}
+		if(studyEntryList.isEmpty()){
+			logger.warn("Study Entry List returned is empty.");
+		}
+		
 		treeRoot = new DefaultTreeNode("root", null);
 
 		for (StudyEntry studyEntry : studyEntryList) {
