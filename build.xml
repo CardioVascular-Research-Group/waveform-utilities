@@ -14,6 +14,13 @@
 			<include name="*.jar"/>
 		</fileset>
 	</path>
+	
+	<target name="all">
+		<antcall target="clean" />
+		<antcall target="jar" />
+
+	</target>
+	
     <target name="clean">
         <delete dir="build"/>
     </target>
@@ -26,7 +33,7 @@
         </javac>
     </target>
 
-    <target name="jar">
+    <target name="jar" depends="compile">
         <mkdir dir="build/jar"/>
         <jar destfile="/opt/liferay/portlet-ext/waveform-utilities.jar" basedir="build/classes">
         </jar>
