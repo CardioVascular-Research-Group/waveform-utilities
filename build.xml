@@ -1,7 +1,10 @@
-<project>
+<project name="waveform-utilities">
 	
 	<path id="utility.classpath">
 		<fileset dir="/opt/liferay/utility-jars">
+			<include name="*.jar"/>
+		</fileset>
+		<fileset dir="/opt/liferay/portlet-ext">
 			<include name="*.jar"/>
 		</fileset>
 		<fileset dir="/opt/liferay/waveform3/tomcat-7.0.27/lib">

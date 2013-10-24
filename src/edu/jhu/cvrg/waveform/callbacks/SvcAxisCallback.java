@@ -24,12 +24,14 @@ import org.apache.axiom.om.OMElement;
 import org.apache.axis2.client.async.AxisCallback;
 import org.apache.axis2.context.MessageContext;
 
+import edu.jhu.cvrg.waveform.utility.AnalysisInProgress;
 import edu.jhu.cvrg.waveform.utility.ServerUtility;
 import edu.jhu.cvrg.waveform.utility.WebServiceUtility;
 
 public abstract class SvcAxisCallback implements AxisCallback{
 	protected boolean verbose = false;
 	protected ServerUtility util = new ServerUtility(verbose);
+	protected AnalysisInProgress aIP;
 
 	public void onComplete() {}
 
