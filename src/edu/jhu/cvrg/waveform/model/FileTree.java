@@ -45,6 +45,8 @@ public class FileTree implements Serializable{
 	}
 	
 	public void initialize(String username) {
+		System.out.println(" FileTree.initialize()");
+		System.out.println(" username = " + username);
 		this.username = username;
 		
 		theDB = new StudyEntryUtility(ResourceUtility.getDbUser(),

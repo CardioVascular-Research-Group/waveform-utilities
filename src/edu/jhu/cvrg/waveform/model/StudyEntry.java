@@ -282,6 +282,17 @@ public class StudyEntry implements Serializable{
 		return samplingRate;
 	}
 	
+	/** Calculated ECG duration time in seconds.
+	   * 
+	   * @return
+	   */
+	public double getDurationSec(){
+		double seconds = this.numberOfPoints/this.samplingRate;
+	    
+	    return seconds;
+	}
+
+	
 	public int getLeadCount() {
 		return leadCount;
 	}
