@@ -1,7 +1,10 @@
-<project>
+<project name="waveform-utilities" basedir="." default="jar">
 	
 	<path id="utility.classpath">
 		<fileset dir="/opt/liferay/utility-jars">
+			<include name="*.jar"/>
+		</fileset>
+		<fileset dir="/opt/liferay/portlet-ext">
 			<include name="*.jar"/>
 		</fileset>
 		<fileset dir="/opt/liferay/waveform3/tomcat-7.0.27/lib">
@@ -15,18 +18,17 @@
         <delete dir="build"/>
     </target>
 
-    <target name="compile">
+    <target name="compile" depends="clean">
         <mkdir dir="build/classes"/>
-        <javac includeantruntime="false" srcdir="src" destdir="build/classes" source="1.7" target="1.7">
+        <javac includeantruntime="false" srcdir="src" destdir="build/classes" target="1.5" debug="true">
         	<classpath refid="utility.classpath"/>
         	<compilerarg value="-Xlint:unchecked"/>
         </javac>
     </target>
 
-    <target name="jar">
-        <mkdir dir="build/jar"/>
-        <jar destfile="/opt/liferay/portlet-ext/waveform-utilities.jar" basedir="build/classes">
-        </jar>
+    <target name="jar" depends="compile">
+        <jar destfile="/opt/liferay/portlet-ext/waveform-utilities.jar" basedir="build/classes" />
+    	<jar destfile="/opt/liferay/liferay-plugins-sdk-6.1.1/portlets/upload-portlet/docroot/WEB-INF/lib/waveform-utilities.jar" basedir="build/classes" />
     </target>
 
 </project>

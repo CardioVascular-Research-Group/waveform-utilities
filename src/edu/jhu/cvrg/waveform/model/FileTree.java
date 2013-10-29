@@ -20,11 +20,25 @@ package edu.jhu.cvrg.waveform.model;
  */
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
+import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
+import javax.portlet.RenderRequest;
 
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
+
+import com.liferay.faces.portal.context.LiferayFacesContext;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.model.User;
+import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 
 import edu.jhu.cvrg.waveform.utility.ResourceUtility;
 import edu.jhu.cvrg.waveform.utility.StudyEntryUtility;
@@ -37,21 +51,30 @@ public class FileTree implements Serializable{
 	private TreeNode[] selectedNodes;
 	private String newFolderName = "";
 	private ArrayList<StudyEntry> studyEntryList;
-	private String username;
 	StudyEntryUtility theDB;
-
-	public FileTree (String username){
-		initialize(username);
+	
+	
+	private String username;
+	private Long userId;
+	private boolean useDB;
+	private Long groupId;
+	
+	public FileTree (User user, boolean useDB){
+		this.useDB = useDB;  
+		initialize(user);
 	}
 	
-	public void initialize(String username) {
-		this.username = username;
+	public void initialize(User user) {
+		this.username = user.getScreenName();
+		this.userId = user.getUserId();
 		
-		theDB = new StudyEntryUtility(ResourceUtility.getDbUser(),
-				ResourceUtility.getDbPassword(), 
-				ResourceUtility.getDbURI(),	
-				ResourceUtility.getDbDriver(), 
-				ResourceUtility.getDbMainDatabase());
+		if(useDB){
+			theDB = new StudyEntryUtility(ResourceUtility.getDbUser(),
+					ResourceUtility.getDbPassword(), 
+					ResourceUtility.getDbURI(),	
+					ResourceUtility.getDbDriver(), 
+					ResourceUtility.getDbMainDatabase());
+		}
 
 		if (treeRoot == null) {
 			buildTree();
@@ -59,10 +82,72 @@ public class FileTree implements Serializable{
 	}
 
 	private void buildTree() {
-
-		studyEntryList = theDB.getEntries(this.username);
-
+		
 		treeRoot = new DefaultTreeNode("root", null);
+		
+		if(useDB){
+			buildTreeFromDB();
+		}else{
+			buildTreeFromFileRepo();
+		}
+	}
+
+	private void buildTreeFromFileRepo() {
+		groupId = ((ThemeDisplay)((RenderRequest)FacesContext.getCurrentInstance().getExternalContext().getRequest()).getAttribute(WebKeys.THEME_DISPLAY)).getLayout().getGroupId();
+		
+		try {
+			Folder rootFolder = null;
+			List<Folder> rootFolders = DLAppLocalServiceUtil.getFolders(groupId, 0L);
+			
+			for (Folder folder : rootFolders) {
+				if("waveform".equals(folder.getName())){
+					rootFolder = folder;
+					break;
+				}
+			}
+			
+			if(rootFolder != null){
+				this.getFolderContent(rootFolder, treeRoot);	
+			}else{
+				System.out.println("WAVEFORM folder does not exist");
+			}
+			
+			
+		} catch (PortalException e) {
+			e.printStackTrace();
+		} catch (SystemException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void getFolderContent(Folder folder, TreeNode node){
+		try {
+			DefaultTreeNode folderNode = new FileTreeNode(folder, node);
+			
+			List<Folder> subFolders = DLAppLocalServiceUtil.getFolders(groupId, folder.getFolderId());
+			if(subFolders != null){
+				for (Folder folder2 : subFolders) {
+					getFolderContent(folder2, folderNode);
+				}						
+			}
+			
+			List<FileEntry> subFiles = DLAppLocalServiceUtil.getFileEntries(groupId, folder.getFolderId());
+			if(subFiles != null){
+				for (FileEntry file : subFiles) {
+					new FileTreeNode(file, node);
+				}				
+			}
+		} catch (PortalException e) {
+			e.printStackTrace();
+		} catch (SystemException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+
+	private void buildTreeFromDB() {
+		studyEntryList = theDB.getEntries(username);
 
 		for (StudyEntry studyEntry : studyEntryList) {
 
@@ -101,6 +186,23 @@ public class FileTree implements Serializable{
 		return path;
 
 	}
+	
+	public Long getSelectedNodeId() {
+
+		TreeNode node = this.selectedNode;
+		
+		if(node instanceof FileTreeNode){
+			FileTreeNode treeNode = (FileTreeNode) node;
+			if(treeNode.getContent() instanceof Folder){
+				return ((Folder) treeNode.getContent()).getFolderId();
+			}else{
+				return ((FileEntry) treeNode.getContent()).getFileEntryId();
+			}
+		}
+		
+		return null;
+	}
+
 
 	private TreeNode getNodeByName(TreeNode searchNode, String name) {
 
@@ -119,11 +221,33 @@ public class FileTree implements Serializable{
 		}
 
 		if (!newFolderName.equals("")) {
-			StudyEntry entryFolder = new StudyEntry();
-			entryFolder.setSubjectID(newFolderName);
-			TreeNode newNode = new DefaultTreeNode(newFolderName, entryFolder, selectedNode);
-			selectedNode.setExpanded(true);
-			selectedNode = (DefaultTreeNode) newNode;
+			if(useDB){
+				StudyEntry entryFolder = new StudyEntry();
+				entryFolder.setSubjectID(newFolderName);
+				TreeNode newNode = new DefaultTreeNode(newFolderName, entryFolder, selectedNode);
+				selectedNode.setExpanded(true);
+				selectedNode = (DefaultTreeNode) newNode;
+			}else{
+				try {
+					FileTreeNode parentNode = (FileTreeNode) selectedNode;
+					
+					Folder parentFolder = null;
+					if(parentNode.getContent() instanceof Folder){
+						parentFolder = (Folder) parentNode.getContent();
+					}else{
+						parentFolder = (Folder) ((FileTreeNode)parentNode.getParent()).getContent();
+					}
+					
+					ServiceContext service = LiferayFacesContext.getInstance().getServiceContext();
+					
+					DLAppLocalServiceUtil.addFolder(userId, this.groupId, parentFolder.getFolderId(), newFolderName, "", service);
+					
+				} catch (PortalException e) {
+					e.printStackTrace();
+				} catch (SystemException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
