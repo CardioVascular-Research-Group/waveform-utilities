@@ -23,7 +23,7 @@ import java.util.ArrayList;
 
 import javax.faces.event.ActionEvent;
 
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
 
@@ -42,15 +42,15 @@ public class FileTree implements Serializable{
 	private StudyEntryUtility theDB;
 	private String MISSING_VALUE = "0";
 	
-	static org.apache.log4j.Logger logger = Logger.getLogger(FileTree.class);
+//	static org.apache.log4j.Logger logger = Logger.getLogger(FileTree.class);
 
 	public FileTree (String username){
 		if(username == null){
-			logger.error("Username is null.");
+//			logger.error("Username is null.");
 			return;
 		}
 		if(username.equals("")){
-			logger.error("Username is empty.");
+//			logger.error("Username is empty.");
 			return;
 		}
 		initialize(username);
@@ -71,7 +71,7 @@ public class FileTree implements Serializable{
 				dbDriver.equals(MISSING_VALUE) ||
 				dbMainDatabase.equals(MISSING_VALUE)){
 			
-			logger.error("Missing one or more configuration values for the database.");
+//			logger.error("Missing one or more configuration values for the database.");
 			return;	
 		}
 
@@ -87,11 +87,11 @@ public class FileTree implements Serializable{
 		studyEntryList = theDB.getEntries(this.username);
 		
 		if(studyEntryList == null){
-			logger.error("Study Entry List is null.");
+//			logger.error("Study Entry List is null.");
 			return;
 		}
 		if(studyEntryList.isEmpty()){
-			logger.warn("Study Entry List returned is empty.");
+//			logger.warn("Study Entry List returned is empty.");
 		}
 		
 		treeRoot = new DefaultTreeNode("root", null);
@@ -122,12 +122,30 @@ public class FileTree implements Serializable{
 
 	public String getSelectedNodePath() {
 
+		if(this.selectedNode == null){
+			return "";
+		}
+		String newPath = "";
 		TreeNode node = this.selectedNode;
-		String path = (String) node.getData();
-
-		while (!node.getParent().getData().toString().equals("Root")) {
+		StudyEntry nodeData = (StudyEntry)node.getData();
+		String path = nodeData.getSubjectID();
+		boolean foundRoot = false;
+		
+		node = node.getParent();
+		
+		foundRoot = node.getData() instanceof String;
+		if(foundRoot){
+			return path;
+		}
+		else{
+			nodeData = (StudyEntry) node.getData();
+			newPath = nodeData.getSubjectID();
+		}
+		
+		while (!foundRoot) {
 			node = node.getParent();
-			path = node.getData().toString() + "|" + path;
+			path = newPath + "|" + path;
+			foundRoot = node.getData() instanceof String;
 		}
 
 		return path;
