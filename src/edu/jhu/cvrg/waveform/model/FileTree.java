@@ -56,6 +56,10 @@ public class FileTree implements Serializable{
 		initialize(username);
 	}
 	
+	public FileTree (){
+		
+	}
+	
 	public void initialize(String username) {
 		this.username = username;
 		
