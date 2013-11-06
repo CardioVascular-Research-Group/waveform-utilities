@@ -7,7 +7,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/portlet-ext"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/portlet-opt"/>
 	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/com.liferay.ide.eclipse.server.tomcat.runtimeClasspathProvider/Liferay v6.1 CE (Tomcat 7)"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/dbutility"/>
 	<classpathentry kind="output" path="bin"/>

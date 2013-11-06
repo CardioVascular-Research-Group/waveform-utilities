@@ -19,63 +19,41 @@ package edu.jhu.cvrg.waveform.model;
  * 
  */
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
-import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
-import javax.portlet.RenderRequest;
-
-import org.primefaces.model.DefaultTreeNode;
-import org.primefaces.model.TreeNode;
 
 import com.liferay.faces.portal.context.LiferayFacesContext;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
-import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 
 import edu.jhu.cvrg.waveform.utility.ResourceUtility;
-import edu.jhu.cvrg.waveform.utility.StudyEntryUtility;
 
 public class FileTree implements Serializable{
 
-	private static final long serialVersionUID = 1L;
-	private TreeNode treeRoot;
-	private TreeNode selectedNode;
-	private TreeNode[] selectedNodes;
+	private static final long serialVersionUID = 4904469355710631253L;
+
+	private static final String WAVEFORM_ROOT_FOLDER = "waveform";
+	
+	private FileTreeNode treeRoot;
+	private FileTreeNode selectedNode;
 	private String newFolderName = "";
-	private ArrayList<StudyEntry> studyEntryList;
-	StudyEntryUtility theDB;
 	
-	
-	private String username;
 	private Long userId;
-	private boolean useDB;
 	private Long groupId;
 	
-	public FileTree (User user, boolean useDB){
-		this.useDB = useDB;  
+	public FileTree (Long user){
 		initialize(user);
 	}
 	
-	public void initialize(User user) {
-		this.username = user.getScreenName();
-		this.userId = user.getUserId();
+	public void initialize(Long userId) {
+		this.userId = userId;
+		this.groupId = ResourceUtility.getCurrentGroupId();
 		
-		if(useDB){
-			theDB = new StudyEntryUtility(ResourceUtility.getDbUser(),
-					ResourceUtility.getDbPassword(), 
-					ResourceUtility.getDbURI(),	
-					ResourceUtility.getDbDriver(), 
-					ResourceUtility.getDbMainDatabase());
-		}
-
 		if (treeRoot == null) {
 			buildTree();
 		}
@@ -83,33 +61,23 @@ public class FileTree implements Serializable{
 
 	private void buildTree() {
 		
-		treeRoot = new DefaultTreeNode("root", null);
-		
-		if(useDB){
-			buildTreeFromDB();
-		}else{
-			buildTreeFromFileRepo();
-		}
-	}
-
-	private void buildTreeFromFileRepo() {
-		groupId = ((ThemeDisplay)((RenderRequest)FacesContext.getCurrentInstance().getExternalContext().getRequest()).getAttribute(WebKeys.THEME_DISPLAY)).getLayout().getGroupId();
-		
 		try {
 			Folder rootFolder = null;
 			List<Folder> rootFolders = DLAppLocalServiceUtil.getFolders(groupId, 0L);
 			
 			for (Folder folder : rootFolders) {
-				if("waveform".equals(folder.getName())){
+				if(WAVEFORM_ROOT_FOLDER.equals(folder.getName())){
 					rootFolder = folder;
 					break;
 				}
 			}
 			
 			if(rootFolder != null){
-				this.getFolderContent(rootFolder, treeRoot);	
+				treeRoot = new FileTreeNode(rootFolder, null);
+				treeRoot.setExpanded(true);
+				this.getFolderContent(rootFolder, treeRoot);
 			}else{
-				System.out.println("WAVEFORM folder does not exist");
+				System.out.println(WAVEFORM_ROOT_FOLDER + " folder does not exist");
 			}
 			
 			
@@ -120,9 +88,14 @@ public class FileTree implements Serializable{
 		}
 	}
 
-	private void getFolderContent(Folder folder, TreeNode node){
+	private void getFolderContent(Folder folder, FileTreeNode node){
 		try {
-			DefaultTreeNode folderNode = new FileTreeNode(folder, node);
+			FileTreeNode folderNode;
+			if(FileTree.WAVEFORM_ROOT_FOLDER.equals(folder.getName())){
+				folderNode = node;
+			}else{
+				folderNode = new FileTreeNode(folder, node);	
+			}
 			
 			List<Folder> subFolders = DLAppLocalServiceUtil.getFolders(groupId, folder.getFolderId());
 			if(subFolders != null){
@@ -134,7 +107,7 @@ public class FileTree implements Serializable{
 			List<FileEntry> subFiles = DLAppLocalServiceUtil.getFileEntries(groupId, folder.getFolderId());
 			if(subFiles != null){
 				for (FileEntry file : subFiles) {
-					new FileTreeNode(file, node);
+					new FileTreeNode(file, folderNode);
 				}				
 			}
 		} catch (PortalException e) {
@@ -144,158 +117,73 @@ public class FileTree implements Serializable{
 		}
 	}
 	
-	
-
-	private void buildTreeFromDB() {
-		studyEntryList = theDB.getEntries(username);
-
-		for (StudyEntry studyEntry : studyEntryList) {
-
-			String[] path = studyEntry.getVirtualPath().split("\\|");
-			TreeNode workNode = treeRoot;
-
-			for (String step : path) {
-
-				TreeNode newNode = getNodeByName(workNode, step);
-
-				if (newNode == null) {
-					StudyEntry entryFolder = new StudyEntry();
-					entryFolder.setSubjectID(step);
-					newNode = new DefaultTreeNode("default", entryFolder, workNode);
-				}
-				newNode.setExpanded(true);
-				
-				workNode = newNode;
-			}
-
-			@SuppressWarnings("unused")
-			TreeNode recordNode = new DefaultTreeNode("document", studyEntry, workNode);
-		}
-	}
-
-	public String getSelectedNodePath() {
-
-		TreeNode node = this.selectedNode;
-		String path = (String) node.getData();
-
-		while (!node.getParent().getData().toString().equals("Root")) {
-			node = node.getParent();
-			path = node.getData().toString() + "|" + path;
-		}
-
-		return path;
-
-	}
-	
 	public Long getSelectedNodeId() {
 
-		TreeNode node = this.selectedNode;
+		FileTreeNode node = this.getSelectedNode();
 		
-		if(node instanceof FileTreeNode){
-			FileTreeNode treeNode = (FileTreeNode) node;
-			if(treeNode.getContent() instanceof Folder){
-				return ((Folder) treeNode.getContent()).getFolderId();
-			}else{
-				return ((FileEntry) treeNode.getContent()).getFileEntryId();
-			}
+		if (node == null) {
+			node = treeRoot;
 		}
 		
-		return null;
-	}
-
-
-	private TreeNode getNodeByName(TreeNode searchNode, String name) {
-
-		for (TreeNode node : searchNode.getChildren()) {
-			if (((StudyEntry)node.getData()).getSubjectID().equals(name)) {
-				return node;
-			}
+		if(node.getContent() instanceof Folder){
+			return ((Folder) node.getContent()).getFolderId();
+		}else{
+			return ((FileEntry) node.getContent()).getFileEntryId();
 		}
-		return null;
+		
 	}
 
 	public void addFolder(ActionEvent event) {
 		
+		FileTreeNode selectedNode = this.getSelectedNode();
+		
 		if (selectedNode == null) {
-			selectedNode = (DefaultTreeNode) treeRoot;
+			selectedNode = treeRoot;
 		}
 
 		if (!newFolderName.equals("")) {
-			if(useDB){
-				StudyEntry entryFolder = new StudyEntry();
-				entryFolder.setSubjectID(newFolderName);
-				TreeNode newNode = new DefaultTreeNode(newFolderName, entryFolder, selectedNode);
-				selectedNode.setExpanded(true);
-				selectedNode = (DefaultTreeNode) newNode;
-			}else{
-				try {
-					FileTreeNode parentNode = (FileTreeNode) selectedNode;
-					
-					Folder parentFolder = null;
-					if(parentNode.getContent() instanceof Folder){
-						parentFolder = (Folder) parentNode.getContent();
-					}else{
-						parentFolder = (Folder) ((FileTreeNode)parentNode.getParent()).getContent();
-					}
-					
-					ServiceContext service = LiferayFacesContext.getInstance().getServiceContext();
-					
-					DLAppLocalServiceUtil.addFolder(userId, this.groupId, parentFolder.getFolderId(), newFolderName, "", service);
-					
-				} catch (PortalException e) {
-					e.printStackTrace();
-				} catch (SystemException e) {
-					e.printStackTrace();
+			try {
+				FileTreeNode parentNode = selectedNode;
+				
+				Folder parentFolder = null;
+				if(parentNode.getContent() instanceof Folder){
+					parentFolder = (Folder) parentNode.getContent();
+				}else{
+					parentFolder = (Folder) ((FileTreeNode)parentNode.getParent()).getContent();
 				}
+				
+				ServiceContext service = LiferayFacesContext.getInstance().getServiceContext();
+				
+				Folder newFolder = DLAppLocalServiceUtil.addFolder(userId, this.groupId, parentFolder.getFolderId(), newFolderName, "", service);
+				
+				FileTreeNode newNode =  new FileTreeNode(newFolder, parentNode);
+				selectedNode = newNode;	
+			} catch (PortalException e) {
+				e.printStackTrace();
+			} catch (SystemException e) {
+				e.printStackTrace();
 			}
 		}
 	}
-
-	public ArrayList<StudyEntry> getSelectedFileNodes() {
-
-		if(selectedNodes == null){
-			return null;
+	
+	public Folder getSelectFolder(){
+		
+		FileTreeNode selectedNode = this.getSelectedNode();
+		
+		if (selectedNode == null) {
+			selectedNode = treeRoot;
 		}
 		
-		ArrayList<StudyEntry> fileEntries = new ArrayList<StudyEntry>();
-
-		for (TreeNode selectedNode : selectedNodes) {
-			if (selectedNode.isLeaf()) {
-				fileEntries.add((StudyEntry)selectedNode.getData());
-			}
-		}
-		return fileEntries;
-	}
-	
-	public void selectAllChildNodes(TreeNode startingNode){
-
-		for(TreeNode node : startingNode.getChildren()){
-			node.setSelected(true);
-			if(!node.getType().equals("document")){
-				selectAllChildNodes(node);
-			}
+		if(FileTreeNode.FOLDER_TYPE.equals(selectedNode.getType())){
+			return (Folder) selectedNode.getContent();
+		}else{
+			return null;
 		}
 	}
 	
-	public void unSelectAllChildNodes(TreeNode startingNode){
-		for(TreeNode node : startingNode.getChildren()){
-			node.setSelected(false);
-			if(!node.getType().equals("document")){
-				unSelectAllChildNodes(node);
-			}
-		}
-	}
 
-	public TreeNode getTreeRoot() {
+	public FileTreeNode getTreeRoot() {
 		return treeRoot;
-	}
-
-	public TreeNode getSelectedNode() {
-		return selectedNode;
-	}
-
-	public void setSelectedNode(TreeNode selectedNode) {
-		this.selectedNode = selectedNode;
 	}
 
 	public String getNewFolderName() {
@@ -306,11 +194,12 @@ public class FileTree implements Serializable{
 		this.newFolderName = newFolderName;
 	}
 
-	public TreeNode[] getSelectedNodes() {
-		return selectedNodes;
+	public FileTreeNode getSelectedNode() {
+		return selectedNode;
 	}
 
-	public void setSelectedNodes(TreeNode[] selectedNodes) {
-		this.selectedNodes = selectedNodes;
+	public void setSelectedNode(FileTreeNode selectedNode) {
+		this.selectedNode = selectedNode;
 	}
+
 }

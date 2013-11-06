@@ -1,34 +1,49 @@
 <project name="waveform-utilities" basedir="." default="jar">
 	
-	<path id="utility.classpath">
-		<fileset dir="/opt/liferay/utility-jars">
-			<include name="*.jar"/>
-		</fileset>
-		<fileset dir="/opt/liferay/portlet-ext">
-			<include name="*.jar"/>
-		</fileset>
-		<fileset dir="/opt/liferay/waveform3/tomcat-7.0.27/lib">
-			<include name="*.jar"/>
-		</fileset>
-		<fileset dir="/opt/liferay/waveform3/tomcat-7.0.27/lib/ext">
+	<property name="liferay" value="/opt/liferay" />
+	<property name="liferay-sdk" value="${liferay}/liferay-plugins-sdk-6.1.1" />
+	<property file="${liferay-sdk}/build.${user.name}.properties" />
+	<property name="dependencies" value="${liferay}/projects-dependencies" />
+		
+	<path id="project-classpath">
+		<fileset dir="${dependencies}/${ant.project.name}-dependencies">
 			<include name="*.jar"/>
 		</fileset>
 	</path>
+	
+	<target name="copyDependenciesToServer">
+		<copy todir="${app.server.lib.global.dir}">
+			<fileset dir="${dependencies}/${ant.project.name}-dependencies">
+				<exclude name="liferay*.jar"/>
+				<exclude name="jsf*.jar"/>
+				<exclude name="primefaces*.jar"/>
+				<exclude name="axi*.jar"/>
+			</fileset>
+		</copy>
+	</target>
+
     <target name="clean">
         <delete dir="build"/>
     </target>
 
     <target name="compile" depends="clean">
+    	<mkdir dir="build"/>
         <mkdir dir="build/classes"/>
         <javac includeantruntime="false" srcdir="src" destdir="build/classes" target="1.5" debug="true">
-        	<classpath refid="utility.classpath"/>
+        	<classpath refid="project-classpath"/>
         	<compilerarg value="-Xlint:unchecked"/>
         </javac>
     </target>
 
     <target name="jar" depends="compile">
         <jar destfile="/opt/liferay/portlet-ext/waveform-utilities.jar" basedir="build/classes" />
-    	<jar destfile="/opt/liferay/liferay-plugins-sdk-6.1.1/portlets/upload-portlet/docroot/WEB-INF/lib/waveform-utilities.jar" basedir="build/classes" />
+    	
+    	<copy todir="${liferay-sdk}/portlets/upload-portlet/docroot/WEB-INF/lib" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
+    	
+    	<mkdir dir="${dependencies}/cvrg-broker-service-dependencies"/>
+    	<copy todir="${dependencies}/cvrg-broker-service-dependencies" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
+		
+    	<antcall target="clean" />
     </target>
 
 </project>

@@ -193,7 +193,10 @@ public class ResourceUtility {
 		LiferayFacesContext liferayFacesContext = LiferayFacesContext.getInstance();
 		User currentUser = null;
 		try {
-			currentUser = UserLocalServiceUtil.getUser(Long.parseLong(liferayFacesContext.getPortletRequest().getRemoteUser()));
+			String remoteUser = liferayFacesContext.getPortletRequest().getRemoteUser();
+			if(remoteUser != null){
+				currentUser = UserLocalServiceUtil.getUser(Long.parseLong(remoteUser));
+			}
 		} catch (NumberFormatException e) {
 			printErrorMessage("Resource Utility");
 			e.printStackTrace();

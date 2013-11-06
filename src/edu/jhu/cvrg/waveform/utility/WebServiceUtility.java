@@ -30,20 +30,27 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.activation.DataHandler;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.axiom.attachments.ByteArrayDataSource;
 import org.apache.axiom.om.OMAbstractFactory;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMFactory;
 import org.apache.axiom.om.OMNamespace;
+import org.apache.axiom.om.OMText;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.Constants;
 import org.apache.axis2.addressing.EndpointReference;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.transport.http.HTTPConstants;
+
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 
 import edu.jhu.cvrg.waveform.callbacks.SvcAxisCallback;
 
@@ -64,7 +71,8 @@ public class WebServiceUtility {
 			boolean isPublic, 
 			String serviceMethod, 
 			String serviceName, 
-			SvcAxisCallback callback){
+			SvcAxisCallback callback,
+			LinkedHashMap<String, FileEntry> filesMap){
 		OMElement result = null;
 		
 		String analysisServiceURL = ResourceUtility.getAnalysisServiceURL();	
@@ -73,7 +81,7 @@ public class WebServiceUtility {
 				serviceMethod, 
 				serviceName, 
 				analysisServiceURL,
-				callback);
+				callback, filesMap);
 		
 		return result;
 	}
@@ -89,7 +97,7 @@ public class WebServiceUtility {
 	 * @return
 	 */
 	public static OMElement callWebService(LinkedHashMap<String, String> parameterMap, 
-			String serviceMethod, String serviceName, String serviceURL, SvcAxisCallback callback){
+			String serviceMethod, String serviceName, String serviceURL, SvcAxisCallback callback, LinkedHashMap<String, FileEntry> filesMap){
 
 		String serviceTarget = "";
 		
@@ -110,9 +118,10 @@ public class WebServiceUtility {
 		OMElement omWebService = omFactory.createOMElement(serviceMethod, omNamespace);
 
 		for(String key : parameterMap.keySet()){
-			
 			addOMEChild(key.toString(), parameterMap.get(key).toString(), omWebService, omFactory, omNamespace);
 		}
+		
+		addFiles(filesMap, omWebService, omFactory, omNamespace);
 
 		ServiceClient sender = getSender(targetEPR);
 
@@ -141,6 +150,34 @@ public class WebServiceUtility {
 	}
 	
 	
+	private static void addFiles(LinkedHashMap<String, FileEntry> filesMap, OMElement omWebService, OMFactory omFactory, OMNamespace omNamespace) {
+		if(filesMap != null){
+			for(String key : filesMap.keySet()){
+				try {
+					OMElement fileElement = omFactory.createOMElement(key, omNamespace);
+					FileEntry file  = filesMap.get(key);
+					
+					byte[] bytes = new byte[Long.valueOf(file.getSize()).intValue()];
+					file.getContentStream().read(bytes);
+					
+					DataHandler dh = new DataHandler(new ByteArrayDataSource(bytes));
+					
+					OMText textData = omFactory.createOMText(dh, true);
+					fileElement.addChild(textData);
+				
+					omWebService.addChild(fileElement);
+					
+				} catch (PortalException e) {
+					e.printStackTrace();
+				} catch (SystemException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
 	/** Generic function for calling web services with parameters which are more than one level deep.<BR>
 	 * Directly returns the webservice results if callback is null.
 	 * 
@@ -224,7 +261,8 @@ public class WebServiceUtility {
 		options.setProperty(HTTPConstants.CONNECTION_TIMEOUT, new Integer(18000000));
 		options.setTransportInProtocol(Constants.TRANSPORT_HTTP);
 		options.setAction(ResourceUtility.getAnalysisServiceURL());
-
+		options.setProperty(Constants.Configuration.ENABLE_MTOM, Constants.VALUE_TRUE);
+		
 		ServiceClient sender = null;
 		try {
 			sender = new ServiceClient();
