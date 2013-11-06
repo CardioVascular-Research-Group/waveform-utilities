@@ -27,6 +27,15 @@
     </target>
 
     <target name="compile" depends="clean">
+    	
+    	<mkdir dir="${dependencies}"/>
+        <mkdir dir="${dependencies}/${ant.project.name}-dependencies"/>
+    	<copy todir="${dependencies}/${ant.project.name}-dependencies">
+    		<fileset dir="${dropbox.home}/jars/projects-dependencies/${ant.project.name}-dependencies">
+				<include name="*.jar"/>    		
+    		</fileset>
+    	</copy>
+    	
     	<mkdir dir="build"/>
         <mkdir dir="build/classes"/>
         <javac includeantruntime="false" srcdir="src" destdir="build/classes" target="1.5" debug="true">
