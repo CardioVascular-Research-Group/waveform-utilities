@@ -35,6 +35,8 @@ import com.liferay.portal.theme.ThemeDisplay;
 
 public class ResourceUtility {
 	
+	private static String MISSING_VALUE = "0";
+	
 	public static String getServerName(){
 		
 		LiferayFacesContext liferayFacesContext = LiferayFacesContext.getInstance();
@@ -48,13 +50,13 @@ public class ResourceUtility {
 		return serverName;
 	}
 	
-	private static String getValue(String key){
-		String value = "0";
+	private static String getValue(String key)  {
+		String value = MISSING_VALUE;
 		try {
 			value = PrefsPropsUtil.getString(key);
 		} catch (SystemException e) {
 			printErrorMessage("Resource Utility");
-			e.printStackTrace();
+			System.err.println("Resource Configuration file not found.");
 		}
 		return value;
 	}
@@ -71,96 +73,100 @@ public class ResourceUtility {
 		return getValue("dbMainDatabase");
 	}
 	
-	public static String getDbDriver(){
+	public static String getDbDriver()  {
 		return getValue("dbDriver");
 	}
 	
-	public static String getDbURI(){
+	public static String getDbURI()  {
 		return getValue("dbURI");
 	}
 	
-	public static String getDbUser(){
+	public static String getDbUser()  {
 		return getValue("dbUser");
 	}
 	
-	public static String getDbPassword(){
+	public static String getDbPassword()  {
 		return getValue("dbPassword");
 	}
 	
-	public static String getStagingFolder(){
+	public static String getStagingFolder()  {
 		return getValue("stagingFolder");
 	}
 
-	public static String getAnalysisServiceURL(){
+	public static String getAnalysisServiceURL()  {
 		return getValue("analysisServiceURL");
 	}
 	
-	public static String getNodeConversionService(){
+	public static String getNodeConversionService()  {
 		return getValue("nodeConversionService");
 	}
 	
-	public static String getStagingServiceMethod(){
+	public static String getStagingServiceMethod()  {
 		return getValue("stagingServiceMethod");
 	}
 
-	public static String getStagingService(){
+	public static String getStagingService()  {
 		return getValue("stagingService");
 	}
 	
-	public static String getDataTransferClass(){
+	public static String getConsolidateCsvMethod(){
+         return getValue("consolidateCsvMethod");
+	}
+	
+	public static String getDataTransferClass()  {
 		return getValue("dataTransferClass");
 	}
 	
-	public static String getCopyFilesMethod(){
+	public static String getCopyFilesMethod()  {
 		return getValue("copyFilesMethod");
 	}
 	
-	public static String getDataTransferServiceName(){
+	public static String getDataTransferServiceName()  {
 		return getValue("dataTransferServiceName");
 	}
 	
-	public static String getConsolidatePrimaryAndDerivedDataMethod(){
+	public static String getConsolidatePrimaryAndDerivedDataMethod()  {
 		return getValue("consolidatePrimaryAndDerivedDataMethod");
 	}
 	
-	public static String getNodeDataServiceName(){
+	public static String getNodeDataServiceName()  {
 		return getValue("nodeDataServiceName");
 	}
 	
-	public static String getAnalysisDatabase(){
+	public static String getAnalysisDatabase()  {
 		return getValue("dbAnalysisDatabase");
 	}
 	
-	public static String getAnalysisResults(){
+	public static String getAnalysisResults()  {
 		return getValue("dbAnalysisResults");
 	}
 	
 	
-	public static String getCopyResultFilesFromAnalysis(){
+	public static String getCopyResultFilesFromAnalysis()  {
 		return getValue("copyResultFilesFromAnalysis");
 	}
 	
-	public static String getDeleteFilesFromAnalysis(){
+	public static String getDeleteFilesFromAnalysis()  {
 		return getValue("deleteFilesFromAnalysis");
 	}
 	
-	public static String getFtpHost(){		
+	public static String getFtpHost()  {		
 		return getValue("ftpHost");
 	}
 	
-	public static String getFtpUser(){		
+	public static String getFtpUser()  {		
 		return getValue("ftpUser");
 	}
 	
-	public static String getFtpPassword(){
+	public static String getFtpPassword()  {
 		return getValue("ftpPassword");
 	}
 	
-	public static String getFtpRoot(){
+	public static String getFtpRoot()  {
 		return getValue("ftpRoot");
 	}
 	
-	public static String getLocalDownloadFolder(){
+	public static String getLocalDownloadFolder()  {
 		return getValue("localDownloadFolder");
 	}	
 	
@@ -199,7 +205,7 @@ public class ResourceUtility {
 			}
 		} catch (NumberFormatException e) {
 			printErrorMessage("Resource Utility");
-			e.printStackTrace();
+			System.err.println("NumberFormatException.  Is the user logged in?");
 		} catch (PortalException e) {
 			printErrorMessage("Resource Utility");
 			e.printStackTrace();

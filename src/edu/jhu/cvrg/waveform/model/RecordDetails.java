@@ -15,7 +15,7 @@ public class RecordDetails implements Serializable{
 		
 	}
 	
-	public List getAllFiles() {
+	public List<FileDetails> getAllFiles() {
 		return fileDetails;
 	}
 	
