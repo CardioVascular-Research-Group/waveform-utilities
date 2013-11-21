@@ -55,10 +55,14 @@
     <target name="jar" depends="compile">
         <jar destfile="/opt/liferay/portlet-ext/waveform-utilities.jar" basedir="build/classes" />
     	
-    	<copy todir="${liferay-sdk}/portlets/upload-portlet/docroot/WEB-INF/lib" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
-    	
     	<mkdir dir="${dependencies}/cvrg-broker-service-dependencies"/>
     	<copy todir="${dependencies}/cvrg-broker-service-dependencies" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
+    	<copy todir="${dependencies}/physionet-analysis-service-dependencies" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
+    	<copy todir="${dependencies}/data-transfer-service-dependencies" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
+    	
+    	<copy todir="/opt/liferay/liferay-plugins-sdk-6.1.1/portlets/analyze-portlet/docroot/WEB-INF/lib" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
+    	<copy todir="/opt/liferay/liferay-plugins-sdk-6.1.1/portlets/upload-portlet/docroot/WEB-INF/lib" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
+    	<copy todir="${app.server.deploy.dir}/axis2/WEB-INF/lib" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
 		
     	<antcall target="clean" />
     </target>
