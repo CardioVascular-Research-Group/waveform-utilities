@@ -48,7 +48,9 @@ public class Algorithm implements Serializable{
 	private ArrayList<AdditionalParameters> aParameters; // Additional parameters (beyond input file names), required or optional.
 	private String sAnalysisServiceURL = "n/a"; // URL of the server containing the web services e.g. "http://128.220.76.170:8080/axis2/services" used together with sServiceName and sServiceMethod e.g. "http://128.220.76.170:8080/axis2/services/physionetAnalysisService/sqrsWrapperType2"
 	private String sServiceMethod = "n/a"; // name of the method, with the webservice. e.g. "sqrsWrapperType2"
-
+	private PhysionetMethods type;
+	
+	
 	public String getsServiceName() {
 		return sServiceName;
 	}
@@ -207,6 +209,14 @@ public class Algorithm implements Serializable{
 
 	public void setsDisplayLongDescription(String sDisplayLongDescription) {
 		this.sDisplayLongDescription = sDisplayLongDescription;
+	}
+
+	public PhysionetMethods getType() {
+		return type;
+	}
+
+	public void setType(PhysionetMethods type) {
+		this.type = type;
 	}
 
 }

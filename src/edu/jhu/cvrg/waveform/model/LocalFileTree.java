@@ -19,9 +19,12 @@ package edu.jhu.cvrg.waveform.model;
  * 
  */
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.faces.event.ActionEvent;
+
+import org.primefaces.model.TreeNode;
 
 import com.liferay.faces.portal.context.LiferayFacesContext;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -41,12 +44,21 @@ public class LocalFileTree implements Serializable{
 	
 	private FileTreeNode treeRoot;
 	private FileTreeNode selectedNode;
+	private TreeNode[] selectedNodes;
 	private String newFolderName = "";
 	
 	private Long userId;
 	private Long groupId;
 	
+	private String extentionFilter;
+	
 	public LocalFileTree (Long user){
+		initialize(user);
+	}
+	
+	
+	public LocalFileTree (Long user, String extentionFilter){
+		this.extentionFilter = extentionFilter;
 		initialize(user);
 	}
 	
@@ -107,7 +119,9 @@ public class LocalFileTree implements Serializable{
 			List<FileEntry> subFiles = DLAppLocalServiceUtil.getFileEntries(groupId, folder.getFolderId());
 			if(subFiles != null){
 				for (FileEntry file : subFiles) {
-					new FileTreeNode(file, folderNode);
+					if(extentionFilter == null || extentionFilter.equalsIgnoreCase(file.getExtension())){
+						new FileTreeNode(file, folderNode);
+					}
 				}				
 			}
 		} catch (PortalException e) {
@@ -181,6 +195,41 @@ public class LocalFileTree implements Serializable{
 		}
 	}
 	
+	public ArrayList<FileEntry> getSelectedFileNodes() {
+
+		if(selectedNodes == null){
+			return null;
+		}
+		
+		ArrayList<FileEntry> fileEntries = new ArrayList<FileEntry>();
+
+		for (TreeNode selectedNode : selectedNodes) {
+			if (selectedNode.isLeaf() && FileTreeNode.FILE_TYPE.equals(selectedNode.getType())) {
+				fileEntries.add((FileEntry)((FileTreeNode)selectedNode).getContent());
+			}
+		}
+		return fileEntries;
+	}
+	
+	public void selectAllChildNodes(TreeNode startingNode){
+
+		for(TreeNode node : startingNode.getChildren()){
+			node.setSelected(true);
+			if(node.getType().equals(FileTreeNode.FOLDER_TYPE)){
+				selectAllChildNodes(node);
+			}
+		}
+	}
+	
+	public void unSelectAllChildNodes(TreeNode startingNode){
+		for(TreeNode node : startingNode.getChildren()){
+			node.setSelected(false);
+			if(node.getType().equals(FileTreeNode.FOLDER_TYPE)){
+				unSelectAllChildNodes(node);
+			}
+		}
+	}
+	
 
 	public FileTreeNode getTreeRoot() {
 		return treeRoot;
@@ -201,5 +250,15 @@ public class LocalFileTree implements Serializable{
 	public void setSelectedNode(FileTreeNode selectedNode) {
 		this.selectedNode = selectedNode;
 	}
+
+	public TreeNode[] getSelectedNodes() {
+		return selectedNodes;
+	}
+
+	public void setSelectedNodes(TreeNode[] selectedNodes) {
+		this.selectedNodes = selectedNodes;
+	}
+	
+	
 
 }

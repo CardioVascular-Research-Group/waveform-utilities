@@ -6,7 +6,7 @@ import org.primefaces.model.TreeNode;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 
-public class FileTreeNode extends DefaultTreeNode{
+public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 
 	protected static final String FILE_TYPE = "document";
 	protected static final String FOLDER_TYPE = "default";
