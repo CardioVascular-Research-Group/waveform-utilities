@@ -205,7 +205,7 @@ public class WebServiceUtility {
 	 * @param filesMap - name, value pairs map for all the files(OMEChild) to be sent to the service.
 	 * @return
 	 */
-	public static OMElement callWebServiceComplexParam(Map parameterMap, 
+	public static OMElement callWebServiceComplexParam(Map<String, ?> parameterMap, 
 													   String serviceMethod,
 													   String serviceName, 
 													   String serviceURL,
@@ -260,7 +260,7 @@ public class WebServiceUtility {
 		return result;
 	}
 	
-	private static void extractParameter(Map<String, Object> map, OMFactory omFactory, OMNamespace omNamespace, OMElement omWebService){
+	private static void extractParameter(Map<String, ?> map, OMFactory omFactory, OMNamespace omNamespace, OMElement omWebService){
 		for(String key : map.keySet()){
 			if(key.endsWith("List") | key.endsWith("list") | map.get(key) instanceof Map){
 				OMElement omList = omFactory.createOMElement(key, omNamespace);
