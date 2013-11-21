@@ -27,7 +27,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.activation.DataHandler;
@@ -60,19 +59,20 @@ public class WebServiceUtility {
 
 	/** Generic function for calling web services on the same server (localhost) as the ECGWaveform web pages.
 	 * 
-	 * @param parameterMap - name, value pairs map for all the (OMEChild) parameters to be sent to the service.
+	 * @param parameterMap - name, value pairs map for all the parameters(OMEChild) to be sent to the service.
 	 * @param isPublic - unused
 	 * @param serviceMethod - name of the specific method of the service to be called.
 	 * @param serviceName - URL of machine the web service runs from.
 	 * @param callback - function to which the service will return result XML to. Calls service without callback if null.
+	 * @param filesMap - name, file pairs map for all the files(OMEChild) to be sent to the service.
 	 * @return
 	 */
-	public static OMElement callWebService(LinkedHashMap<String, String> parameterMap, 
+	public static OMElement callWebService(Map<String, String> parameterMap, 
 			boolean isPublic, 
 			String serviceMethod, 
 			String serviceName, 
 			SvcAxisCallback callback,
-			LinkedHashMap<String, FileEntry> filesMap){
+			Map<String, FileEntry> filesMap){
 		OMElement result = null;
 		
 		String analysisServiceURL = ResourceUtility.getAnalysisServiceURL();	
@@ -86,6 +86,34 @@ public class WebServiceUtility {
 		return result;
 	}
 	
+	/** Generic function for calling web services on the same server (localhost) as the ECGWaveform web pages.
+	 * 
+	 * @param parameterMap - name, value pairs map for all the (OMEChild) parameters to be sent to the service.
+	 * @param isPublic - unused
+	 * @param serviceMethod - name of the specific method of the service to be called.
+	 * @param serviceName - URL of machine the web service runs from.
+	 * @param callback - function to which the service will return result XML to. Calls service without callback if null.
+	 * @return
+	 */
+	public static OMElement callWebService(Map<String, String> parameterMap, 
+										   boolean isPublic, 
+										   String serviceMethod, 
+										   String serviceName, 
+										   SvcAxisCallback callback){
+		OMElement result = null;
+		
+		String analysisServiceURL = ResourceUtility.getAnalysisServiceURL();	
+
+		result = callWebService(parameterMap, 
+				serviceMethod, 
+				serviceName, 
+				analysisServiceURL,
+				callback, null);
+		
+		return result;
+	}
+
+
 	/** Generic function for calling web services.<BR>
 	 * Directly returns the webservice results if callback is null.
 	 * 
@@ -96,61 +124,33 @@ public class WebServiceUtility {
 	 * @param callback - function to which the service will return result XML to. Calls service without callback if null.
 	 * @return
 	 */
-	public static OMElement callWebService(LinkedHashMap<String, String> parameterMap, 
-			String serviceMethod, String serviceName, String serviceURL, SvcAxisCallback callback, LinkedHashMap<String, FileEntry> filesMap){
+	public static OMElement callWebService(Map<String, String> parameterMap, String serviceMethod, String serviceName, String serviceURL, SvcAxisCallback callback){
+			return WebServiceUtility.callWebService(parameterMap, serviceMethod, serviceName, serviceURL, callback, null);
+	}
+	
+	/** Generic function for calling web services.<BR>
+	 * Directly returns the webservice results if callback is null.
+	 * 
+	 * @param parameterMap - name, value pairs map for all the parameters(OMEChild) to be sent to the service.
+	 * @param serviceMethod - name of the specific method of the service to be called.  e.g. "copyDataFilesToAnalysis"
+	 * @param serviceName - name of the web service to invoke, e.g. "dataTransferService"
+	 * @param serviceURL - URL of machine the web service runs from. e.g. "http://icmv058.icm.jhu.edu:8080/axis2/services/"
+	 * @param callback - function to which the service will return result XML to. Calls service without callback if null.
+	 * @param filesMap - name, files pairs map for all the files(OMEChild) to be sent to the service.
+	 * @return
+	 */
+	public static OMElement callWebService(Map<String, String> parameterMap, 
+										   String serviceMethod, 
+										   String serviceName, 
+										   String serviceURL, 
+										   SvcAxisCallback callback, 
+										   Map<String, FileEntry> filesMap){
 
-		String serviceTarget = "";
-		
-		if(serviceName != null){
-			if(!serviceName.equals("")){
-				serviceTarget = serviceName; // + "/" + serviceMethod;
-			}else{
-				serviceTarget = serviceMethod;
-			}
-		}	
-		
-		EndpointReference targetEPR = new EndpointReference(serviceURL + "/" + serviceTarget);
-
-		OMFactory omFactory = OMAbstractFactory.getOMFactory();
-
-		OMNamespace omNamespace = omFactory.createOMNamespace(serviceURL + serviceName, serviceName);	
-		
-		OMElement omWebService = omFactory.createOMElement(serviceMethod, omNamespace);
-
-		for(String key : parameterMap.keySet()){
-			addOMEChild(key.toString(), parameterMap.get(key).toString(), omWebService, omFactory, omNamespace);
-		}
-		
-		addFiles(filesMap, omWebService, omFactory, omNamespace);
-
-		ServiceClient sender = getSender(targetEPR);
-
-		OMElement result = null;
-		try {
-			if(callback == null){
-				//  Directly invoke an anonymous operation with an In-Out message exchange pattern.
-				result = sender.sendReceive(omWebService);
-				StringWriter writer = new StringWriter();
-				result.serialize(XMLOutputFactory.newInstance().createXMLStreamWriter(writer));
-				writer.flush();
-			}
-			else{
-				// Directly invoke an anonymous operation with an In-Out message exchange pattern without waiting for a response.
-				sender.sendReceiveNonBlocking(omWebService, callback);
-			}
-		} catch (AxisFault e) {
-			e.printStackTrace();
-		} catch (XMLStreamException e) {
-			e.printStackTrace();
-		} catch (FactoryConfigurationError e) {
-			e.printStackTrace();
-		}
-		
-		return result;
+		return callWebServiceComplexParam(parameterMap, serviceMethod, serviceName, serviceURL, callback, filesMap);
 	}
 	
 	
-	private static void addFiles(LinkedHashMap<String, FileEntry> filesMap, OMElement omWebService, OMFactory omFactory, OMNamespace omNamespace) {
+	private static void addFiles(Map<String, FileEntry> filesMap, OMElement omWebService, OMFactory omFactory, OMNamespace omNamespace) {
 		if(filesMap != null){
 			for(String key : filesMap.keySet()){
 				try {
@@ -188,11 +188,29 @@ public class WebServiceUtility {
 	 * @param callback - function to which the service will return result XML to. Calls service without callback if null.
 	 * @return
 	 */
-	public static OMElement callWebServiceComplexParam(LinkedHashMap<String, Object> parameterMap, 
-			String serviceMethod, 
-			String serviceName, 
-			String serviceURL,
-			SvcAxisCallback callback){
+	public static OMElement callWebServiceComplexParam(Map<String, Object> parameterMap, String serviceMethod, String serviceName, 
+													   String serviceURL,SvcAxisCallback callback){
+		
+		return callWebServiceComplexParam(parameterMap, serviceMethod, serviceName, serviceURL, callback, null);
+		
+	}
+	/** Generic function for calling web services with parameters which are more than one level deep.<BR>
+	 * Directly returns the webservice results if callback is null.
+	 * 
+	 * @param parameterMap - name, value pairs map for all the parameters(OMEChild) to be sent to the service, if a value is another LinkedHashMap, then it is assumed to contain subnodes of that parameter's key node.
+	 * @param serviceMethod - name of the specific method of the service to be called.  e.g. "copyDataFilesToAnalysis"
+	 * @param serviceName - name of the web service to invoke, e.g. "dataTransferService"
+	 * @param serviceURL - URL of machine the web service runs from. e.g. "http://icmv058.icm.jhu.edu:8080/axis2/services/"
+	 * @param callback - function to which the service will return result XML to. Calls service without callback if null.
+	 * @param filesMap - name, value pairs map for all the files(OMEChild) to be sent to the service.
+	 * @return
+	 */
+	public static OMElement callWebServiceComplexParam(Map parameterMap, 
+													   String serviceMethod,
+													   String serviceName, 
+													   String serviceURL,
+													   SvcAxisCallback callback,
+													   Map<String, FileEntry> filesMap){
 
 		String serviceTarget = "";
 		
@@ -209,40 +227,28 @@ public class WebServiceUtility {
 
 		OMFactory omFactory = OMAbstractFactory.getOMFactory();
 
-		OMNamespace omNamespace = omFactory.createOMNamespace(serviceURL + serviceName, serviceName);
+		OMNamespace omNamespace = omFactory.createOMNamespace(serviceURL + "/" + serviceName, serviceName);
 		OMElement omWebService = omFactory.createOMElement(serviceMethod, omNamespace);
 
-		for(String key : parameterMap.keySet()){
-			if(key.endsWith("List") | key.endsWith("list")){
-				OMElement omList = omFactory.createOMElement(key, omNamespace);
-				@SuppressWarnings("unchecked")
-				LinkedHashMap<String, String> listMap = (LinkedHashMap<String, String>) parameterMap.get(key);
-				for(String listKey : listMap.keySet()){
-					String sk = listKey.toString();
-					String sv = listMap.get(listKey).toString();
-					addOMEChild(sk, sv, omList);
-				}
-				omWebService.addChild(omList);
-			}else{
-				addOMEChild(key.toString(), parameterMap.get(key).toString(), omWebService);
-			}
-		}
+		extractParameter(parameterMap, omFactory, omNamespace, omWebService);
 
-		ServiceClient sender = getSender(targetEPR);
+		addFiles(filesMap, omWebService, omFactory, omNamespace);
+		
+		ServiceClient sender = getSender(targetEPR, serviceMethod);
 
 		OMElement result = null;
 		try {
 			if(callback == null){
 				//  Directly invoke an anonymous operation with an In-Out message exchange pattern.
 				result = sender.sendReceive(omWebService);
+				StringWriter writer = new StringWriter();
+				result.serialize(XMLOutputFactory.newInstance().createXMLStreamWriter(writer));
+				writer.flush();
 			}
 			else{
 				// Directly invoke an anonymous operation with an In-Out message exchange pattern without waiting for a response.
 				sender.sendReceiveNonBlocking(omWebService, callback);
 			}
-			StringWriter writer = new StringWriter();
-			result.serialize(XMLOutputFactory.newInstance().createXMLStreamWriter(writer));
-			writer.flush();
 		} catch (AxisFault e) {
 			e.printStackTrace();
 		} catch (XMLStreamException e) {
@@ -254,13 +260,27 @@ public class WebServiceUtility {
 		return result;
 	}
 	
-	private static ServiceClient getSender(EndpointReference targetEPR) {
+	private static void extractParameter(Map<String, Object> map, OMFactory omFactory, OMNamespace omNamespace, OMElement omWebService){
+		for(String key : map.keySet()){
+			if(key.endsWith("List") | key.endsWith("list") | map.get(key) instanceof Map){
+				OMElement omList = omFactory.createOMElement(key, omNamespace);
+				@SuppressWarnings("unchecked")
+				Map<String, Object> listMap = (Map<String, Object>) map.get(key);
+				extractParameter(listMap, omFactory, omNamespace, omList);
+				omWebService.addChild(omList);
+			}else{
+				addOMEChild(key.toString(), map.get(key).toString(), omWebService);
+			}
+		}
+	}
+	
+	private static ServiceClient getSender(EndpointReference targetEPR, String methodName) {
 		Options options = new Options();
 		options.setTo(targetEPR);
 		options.setProperty(HTTPConstants.SO_TIMEOUT, new Integer(18000000));
 		options.setProperty(HTTPConstants.CONNECTION_TIMEOUT, new Integer(18000000));
 		options.setTransportInProtocol(Constants.TRANSPORT_HTTP);
-		options.setAction(ResourceUtility.getAnalysisServiceURL());
+		options.setAction("urn:"+methodName);
 		options.setProperty(Constants.Configuration.ENABLE_MTOM, Constants.VALUE_TRUE);
 		
 		ServiceClient sender = null;
