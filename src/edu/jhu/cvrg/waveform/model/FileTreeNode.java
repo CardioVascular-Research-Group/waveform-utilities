@@ -14,6 +14,7 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 	private static final long serialVersionUID = -8272995370554100396L;
 	
 	private Object content;
+	private Long documentRecordId;
 	
 	public FileTreeNode(String type, Folder folder, TreeNode parentNode) {
 		super(type, folder.getName(), parentNode);
@@ -31,10 +32,11 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 		this.setContent(folder);
 	}
 	
-	public FileTreeNode(FileEntry folder, TreeNode parentNode) {
-		super(folder.getTitle(), parentNode);
+	public FileTreeNode(FileEntry fileEntry, TreeNode parentNode, Long documentRecordId) {
+		super(fileEntry.getTitle(), parentNode);
 		this.setType(FILE_TYPE);
-		this.setContent(folder);
+		this.setContent(fileEntry);
+		this.documentRecordId = documentRecordId;
 	}
 
 	public Object getContent() {
@@ -43,6 +45,10 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 
 	public void setContent(Object content) {
 		this.content = content;
+	}
+
+	public Long getDocumentRecordId() {
+		return documentRecordId;
 	}	
 	
 }
