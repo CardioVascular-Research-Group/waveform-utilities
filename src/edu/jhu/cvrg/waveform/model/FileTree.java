@@ -23,12 +23,13 @@ import java.util.ArrayList;
 
 import javax.faces.event.ActionEvent;
 
-//import org.apache.log4j.Logger;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
 
+import edu.jhu.cvrg.dbapi.factory.exists.model.StudyEntry;
 import edu.jhu.cvrg.waveform.utility.ResourceUtility;
 import edu.jhu.cvrg.waveform.utility.StudyEntryUtility;
+//import org.apache.log4j.Logger;
 
 public class FileTree implements Serializable{
 

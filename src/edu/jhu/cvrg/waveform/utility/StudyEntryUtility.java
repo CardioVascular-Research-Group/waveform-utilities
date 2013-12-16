@@ -12,9 +12,9 @@ import org.xmldb.api.base.XMLDBException;
 import com.thoughtworks.xstream.XStream;
 
 import edu.jhu.cvrg.dbapi.XMLUtility;
-import edu.jhu.cvrg.waveform.model.FileDetails;
-import edu.jhu.cvrg.waveform.model.RecordDetails;
-import edu.jhu.cvrg.waveform.model.StudyEntry;
+import edu.jhu.cvrg.dbapi.factory.exists.model.FileDetails;
+import edu.jhu.cvrg.dbapi.factory.exists.model.RecordDetails;
+import edu.jhu.cvrg.dbapi.factory.exists.model.StudyEntry;
 
 public class StudyEntryUtility extends XMLUtility implements Serializable{
 	
