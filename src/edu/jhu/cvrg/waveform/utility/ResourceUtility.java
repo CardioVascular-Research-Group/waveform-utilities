@@ -195,6 +195,13 @@ public class ResourceUtility {
 		return themeDisplay.getLayout().getGroupId();	
 	}
 	
+	public static long getCurrentCompanyId(){	
+		LiferayFacesContext liferayFacesContext = LiferayFacesContext.getInstance();
+		PortletRequest request = (PortletRequest)liferayFacesContext.getExternalContext().getRequest();
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(WebKeys.THEME_DISPLAY);
+		return themeDisplay.getCompanyId();	
+	}
+	
 	public static User getCurrentUser(){
 		LiferayFacesContext liferayFacesContext = LiferayFacesContext.getInstance();
 		User currentUser = null;
