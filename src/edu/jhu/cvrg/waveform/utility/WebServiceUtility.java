@@ -152,6 +152,7 @@ public class WebServiceUtility {
 	
 	private static void addFiles(Map<String, FileEntry> filesMap, OMElement omWebService, OMFactory omFactory, OMNamespace omNamespace) {
 		if(filesMap != null){
+			StringBuilder filesId = new StringBuilder();
 			for(String key : filesMap.keySet()){
 				try {
 					OMElement fileElement = omFactory.createOMElement(key, omNamespace);
@@ -166,6 +167,7 @@ public class WebServiceUtility {
 					fileElement.addChild(textData);
 				
 					omWebService.addChild(fileElement);
+					filesId.append(file.getFileEntryId()).append(',');
 					
 				} catch (PortalException e) {
 					e.printStackTrace();
@@ -175,6 +177,7 @@ public class WebServiceUtility {
 					e.printStackTrace();
 				}
 			}
+			addOMEChild("filesId", filesId.toString(), omWebService);
 		}
 	}
 
@@ -443,6 +446,18 @@ public class WebServiceUtility {
 		return paramMap;
 	}
 	
+	
+	public static Map<String, OMElement> extractParams(OMElement e){
+		Map<String, OMElement> paramMap = new HashMap<String, OMElement>();  
+		for (Iterator<?> iterator = e.getChildren(); iterator.hasNext();) {
+			Object type = (Object) iterator.next();
+			if(type instanceof OMElement){
+				OMElement node = (OMElement)type;
+				paramMap.put(node.getLocalName(), node);
+			}
+		}
+		return paramMap;
+	}
 
 	/** Parses a list node from the service's incoming XML and builds a Map of all its children for easy access.
 	 * Used for parameters list and also file handle list.
