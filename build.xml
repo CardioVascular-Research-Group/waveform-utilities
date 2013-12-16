@@ -63,6 +63,8 @@
     	
     	<copy todir="/opt/liferay/liferay-plugins-sdk-6.1.1/portlets/analyze-portlet/docroot/WEB-INF/lib" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
     	<copy todir="/opt/liferay/liferay-plugins-sdk-6.1.1/portlets/upload-portlet/docroot/WEB-INF/lib" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
+    	<copy todir="/opt/liferay/liferay-plugins-sdk-6.1.1/portlets/download-portlet/docroot/WEB-INF/lib" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
+    	<copy todir="/opt/liferay/liferay-plugins-sdk-6.1.1/portlets/visualize-portlet/docroot/WEB-INF/lib" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
     	<copy todir="${app.server.deploy.dir}/axis2/WEB-INF/lib" file="/opt/liferay/portlet-ext/waveform-utilities.jar" />
 		
     	<antcall target="clean" />

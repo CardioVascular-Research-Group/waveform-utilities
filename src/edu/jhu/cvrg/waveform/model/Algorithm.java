@@ -48,7 +48,9 @@ public class Algorithm implements Serializable{
 	private ArrayList<AdditionalParameters> aParameters; // Additional parameters (beyond input file names), required or optional.
 	private String sAnalysisServiceURL = "n/a"; // URL of the server containing the web services e.g. "http://128.220.76.170:8080/axis2/services" used together with sServiceName and sServiceMethod e.g. "http://128.220.76.170:8080/axis2/services/physionetAnalysisService/sqrsWrapperType2"
 	private String sServiceMethod = "n/a"; // name of the method, with the webservice. e.g. "sqrsWrapperType2"
+	
 	private PhysionetMethods type;
+	private boolean wfdbAnnotationOutput;
 	
 	
 	public String getsServiceName() {
@@ -217,6 +219,14 @@ public class Algorithm implements Serializable{
 
 	public void setType(PhysionetMethods type) {
 		this.type = type;
+	}
+
+	public boolean hasWfdbAnnotationOutput() {
+		return wfdbAnnotationOutput;
+	}
+
+	public void setWfdbAnnotationOutput(boolean wfdbAnnotationOutput) {
+		this.wfdbAnnotationOutput = wfdbAnnotationOutput;
 	}
 
 }
