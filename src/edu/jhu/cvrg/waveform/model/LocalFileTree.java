@@ -99,7 +99,7 @@ public class LocalFileTree implements Serializable{
 				treeRoot = new FileTreeNode(rootFolder, null);
 				treeRoot.setExpanded(true);
 				
-				List<FileInfoDTO> files = con.getFileIdListByUser(userId);
+				List<FileInfoDTO> files = con.getFileListByUser(userId);
 				
 				this.getUserTree(files, rootFolder, treeRoot);
 				
