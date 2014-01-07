@@ -73,9 +73,8 @@ public class LocalFileTree implements Serializable{
 		this.USER_ROOT_FOLDER = String.valueOf(userId);
 		Connection con = ConnectionFactory.createConnection();
 		
-		if (treeRoot == null) {
-			buildTree(con);
-		}
+		buildTree(con);
+		
 	}
 
 	private void buildTree(Connection con) {
