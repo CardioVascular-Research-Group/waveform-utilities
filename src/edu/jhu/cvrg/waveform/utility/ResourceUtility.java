@@ -20,6 +20,9 @@ limitations under the License.
 */
 import java.util.List;
 
+import javax.faces.application.FacesMessage;
+import javax.faces.application.FacesMessage.Severity;
+import javax.faces.context.FacesContext;
 import javax.portlet.PortletRequest;
 
 import com.liferay.faces.portal.context.LiferayFacesContext;
@@ -281,5 +284,22 @@ public class ResourceUtility {
 		
 		return userFullName;
 	}
+	
+	public static void showMessages(String title, List<FacesMessage> messages) {
+		Severity severity = FacesMessage.SEVERITY_INFO;
+    	StringBuilder sb = new StringBuilder("<br /><ul>");
+    	for (FacesMessage m : messages) {
+    		if(m.getSeverity().getOrdinal() > severity.getOrdinal()){
+    			severity = m.getSeverity();
+    		}
+    		sb.append("<li>");
+			sb.append(m.getDetail());
+			sb.append("</li>");
+		}
+    	sb.append("</ul>");
+    	
+    	FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, title, sb.toString()));
+	}  
+
 
 }
