@@ -24,9 +24,11 @@ import java.util.List;
 
 import javax.faces.event.ActionEvent;
 
+import org.apache.log4j.Logger;
 import org.primefaces.model.TreeNode;
 
 import com.liferay.faces.portal.context.LiferayFacesContext;
+import com.liferay.portal.NoSuchRepositoryEntryException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -56,6 +58,8 @@ public class LocalFileTree implements Serializable{
 	private Long groupId;
 	
 	private String extentionFilter;
+	
+	private Logger log = Logger.getLogger(LocalFileTree.class);
 	
 	public LocalFileTree (Long user){
 		initialize(user);
@@ -102,26 +106,30 @@ public class LocalFileTree implements Serializable{
 				
 				this.getUserTree(files, rootFolder, treeRoot);
 				
+				// To be used on new version of file sharing
 				//this.getFolderContent(rootFolder, treeRoot);
 			}else{
-				System.out.println(WAVEFORM_ROOT_FOLDER + " folder does not exist");
+				log.error(WAVEFORM_ROOT_FOLDER + " folder does not exist");
 			}
 			
-			
 		} catch (PortalException e) {
-			e.printStackTrace();
+			log.error("Erro on tree loading. "+ e.getMessage());
 		} catch (SystemException e) {
-			e.printStackTrace();
+			log.error("Erro on tree loading. "+ e.getMessage());
 		}
 	}
 
 	
 	private void getUserTree(List<FileInfoDTO> filesId, Folder folder, FileTreeNode treeRoot) throws PortalException, SystemException{
 		for (FileInfoDTO file : filesId) {
-			FileEntry fileEntry = DLAppLocalServiceUtil.getFileEntry(file.getFileEntryId());
-			if(extentionFilter == null || extentionFilter.equalsIgnoreCase(fileEntry.getExtension())){
-				FileTreeNode folderNode = getFolderParentNode(fileEntry.getFolder(), treeRoot);
-				new FileTreeNode(fileEntry, folderNode, file.getDocumentRecordId());
+			try{
+				FileEntry fileEntry = DLAppLocalServiceUtil.getFileEntry(file.getFileEntryId());
+				if(extentionFilter == null || extentionFilter.equalsIgnoreCase(fileEntry.getExtension())){
+					FileTreeNode folderNode = getFolderParentNode(fileEntry.getFolder(), treeRoot);
+					new FileTreeNode(fileEntry, folderNode, file.getDocumentRecordId());
+				}
+			}catch (NoSuchRepositoryEntryException e){
+				log.error("File id " + file.getFileEntryId() + " does not exist. "+e.getMessage());
 			}
 		}
 	}
@@ -154,6 +162,9 @@ public class LocalFileTree implements Serializable{
 		return ret;
 	}
 	
+	
+	// To be used on new version of file sharing
+	@SuppressWarnings("unused")
 	private void getFolderContent(Folder folder, FileTreeNode node){
 		try {
 			FileTreeNode folderNode;
@@ -179,9 +190,9 @@ public class LocalFileTree implements Serializable{
 				}				
 			}
 		} catch (PortalException e) {
-			e.printStackTrace();
+			log.error("Erro on tree loading. "+ e.getMessage());
 		} catch (SystemException e) {
-			e.printStackTrace();
+			log.error("Erro on tree loading. "+ e.getMessage());
 		}
 	}
 	
@@ -266,9 +277,9 @@ public class LocalFileTree implements Serializable{
 			}
 			
 		} catch (PortalException e) {
-			e.printStackTrace();
+			log.error("Error on add folder. " + e.getMessage());
 		} catch (SystemException e) {
-			e.printStackTrace();
+			log.error("Error on add folder. " + e.getMessage());
 		}
 		return newFolder;
 	}
