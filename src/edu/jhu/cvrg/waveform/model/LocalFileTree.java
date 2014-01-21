@@ -20,6 +20,7 @@ package edu.jhu.cvrg.waveform.model;
  */
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.faces.event.ActionEvent;
@@ -321,18 +322,27 @@ public class LocalFileTree implements Serializable{
 		
 		TreeNode[] tempNodes = selectedNodes;
 
-		if(tempNodes == null){
+		if(tempNodes == null && selectedNode != null){
 			tempNodes = new TreeNode[]{selectedNode};
 		}
 		
-		ArrayList<FileTreeNode> fileEntries = new ArrayList<FileTreeNode>();
+		ArrayList<FileTreeNode> fileEntries = null;
 
+		if(tempNodes != null && tempNodes.length > 0){
+			fileEntries = new ArrayList<FileTreeNode>();
+			getFileEntries(Arrays.asList(tempNodes), fileEntries);
+		}
+		return fileEntries;
+	}
+
+	private void getFileEntries(List<TreeNode> tempNodes, ArrayList<FileTreeNode> fileEntries) {
 		for (TreeNode selectedNode : tempNodes) {
 			if (selectedNode.isLeaf() && FileTreeNode.FILE_TYPE.equals(selectedNode.getType())) {
 				fileEntries.add((FileTreeNode)selectedNode);
+			}else if(FileTreeNode.FOLDER_TYPE.equals(selectedNode.getType())){
+				this.getFileEntries(selectedNode.getChildren(), fileEntries);
 			}
 		}
-		return fileEntries;
 	}
 	
 	public void selectAllChildNodes(TreeNode startingNode){
