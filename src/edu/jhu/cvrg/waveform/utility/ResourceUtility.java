@@ -18,6 +18,7 @@ limitations under the License.
 * @author Chris Jurado
 * 
 */
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.faces.application.FacesMessage;
@@ -301,5 +302,19 @@ public class ResourceUtility {
     	FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, title, sb.toString()));
 	}  
 
-
+	private static final List<String[]> patterns = new ArrayList<String[]>();
+	static{
+		patterns.add(new String[]{"[\\[&@}:,=>/<{%|+#?\"\'\\;*~\\]]", "_"});
+		patterns.add(new String[]{"[\n\r]", ""});
+	}
+	
+	public static String convertToLiferayDocName(final String name) {
+		String str = name;
+		
+		for (String[] strings : patterns) {
+			str = str.replaceAll(strings[0], strings[1]);
+		}
+		
+		return str;
+	}
 }

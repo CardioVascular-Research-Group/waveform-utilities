@@ -20,6 +20,7 @@ import org.apache.axis2.addressing.EndpointReference;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.log4j.Logger;
 
 public class ServerUtility {
 	public boolean verbose = false;
@@ -312,4 +313,18 @@ public class ServerUtility {
         debugPrintln("\"");
 		return bRet;
 	}
+	
+	public static void logStackTrace(Exception e, Logger log){
+    	
+    	int lines = 10;
+    	
+    	if(lines > e.getStackTrace().length){
+    		lines = e.getStackTrace().length;
+    	}
+    	
+    	for (int i = 0; i < lines; i++) {
+			log.error(e.getStackTrace()[i]);
+		}
+    }
+	
 }

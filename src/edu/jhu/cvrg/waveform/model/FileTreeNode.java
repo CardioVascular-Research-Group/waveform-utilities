@@ -8,6 +8,7 @@ import com.liferay.portal.kernel.repository.model.Folder;
 
 public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 
+	protected static final String FILE_ERROR_TYPE = "document_error";
 	protected static final String FILE_TYPE = "document";
 	protected static final String FOLDER_TYPE = "default";
 
@@ -34,9 +35,14 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 	
 	public FileTreeNode(FileEntry fileEntry, TreeNode parentNode, Long documentRecordId) {
 		super(fileEntry.getTitle(), parentNode);
-		this.setType(FILE_TYPE);
-		this.setContent(fileEntry);
 		this.documentRecordId = documentRecordId;
+		this.setContent(fileEntry);
+		if(documentRecordId != null){
+			this.setType(FILE_TYPE);
+		}else{
+			this.setType(FILE_ERROR_TYPE);
+		}
+		
 	}
 
 	public Object getContent() {

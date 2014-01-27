@@ -21,7 +21,9 @@ package edu.jhu.cvrg.waveform.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.faces.event.ActionEvent;
 
@@ -29,7 +31,6 @@ import org.apache.log4j.Logger;
 import org.primefaces.model.TreeNode;
 
 import com.liferay.faces.portal.context.LiferayFacesContext;
-import com.liferay.portal.NoSuchRepositoryEntryException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -105,10 +106,7 @@ public class LocalFileTree implements Serializable{
 				
 				List<FileInfoDTO> files = con.getFileListByUser(userId);
 				
-				this.getUserTree(files, rootFolder, treeRoot);
-				
-				// To be used on new version of file sharing
-				//this.getFolderContent(rootFolder, treeRoot);
+				this.getFolderContent(this.extractFileIdList(files), rootFolder, treeRoot);
 			}else{
 				log.error(WAVEFORM_ROOT_FOLDER + " folder does not exist");
 			}
@@ -120,65 +118,30 @@ public class LocalFileTree implements Serializable{
 		}
 	}
 
-	
-	private void getUserTree(List<FileInfoDTO> filesId, Folder folder, FileTreeNode treeRoot) throws PortalException, SystemException{
-		for (FileInfoDTO file : filesId) {
-			try{
-				FileEntry fileEntry = DLAppLocalServiceUtil.getFileEntry(file.getFileEntryId());
-				if(extentionFilter == null || extentionFilter.equalsIgnoreCase(fileEntry.getExtension())){
-					FileTreeNode folderNode = getFolderParentNode(fileEntry.getFolder(), treeRoot);
-					new FileTreeNode(fileEntry, folderNode, file.getDocumentRecordId());
-				}
-			}catch (NoSuchRepositoryEntryException e){
-				log.error("File id " + file.getFileEntryId() + " does not exist. "+e.getMessage());
+	private Map<Long, FileInfoDTO> extractFileIdList(List<FileInfoDTO> files){
+		Map<Long, FileInfoDTO> fileMap = new HashMap<Long, FileInfoDTO>();
+		if(files!= null){
+			for (FileInfoDTO fileInfoDTO : files) {
+				fileMap.put(fileInfoDTO.getFileEntryId(), fileInfoDTO);
 			}
 		}
-	}
-	
-	private FileTreeNode getFolderParentNode(Folder folder, FileTreeNode node) throws PortalException, SystemException{
-		
-		if(!folder.getName().equals(treeRoot.getData())){
-			FileTreeNode parentNode = this.getFolderParentNode(folder.getParentFolder(), node);
-			FileTreeNode sameNameChild = getChildByName(parentNode, folder.getName());
-			if(sameNameChild == null){
-				sameNameChild = new FileTreeNode(folder, parentNode);	
-			}
-			return sameNameChild;
-			
-		}else{
-			return treeRoot;
-		}
-	}
-	
-	private FileTreeNode getChildByName(FileTreeNode node, String name){
-		FileTreeNode ret = null;
-		if(node!=null && !node.isLeaf()){
-			for (TreeNode child : node.getChildren()) {
-				if(child.getData().equals(name)){
-					ret = (FileTreeNode)child;
-					break;
-				}
-			}
-		}
-		return ret;
-	}
+		return fileMap;
+	} 
 	
 	
-	// To be used on new version of file sharing
-	@SuppressWarnings("unused")
-	private void getFolderContent(Folder folder, FileTreeNode node){
+	private void getFolderContent(Map<Long, FileInfoDTO> map, Folder folder, FileTreeNode node){
 		try {
-			FileTreeNode folderNode;
-			if(LocalFileTree.WAVEFORM_ROOT_FOLDER.equals(folder.getName())){
+			FileTreeNode folderNode = null;
+			if(USER_ROOT_FOLDER.equals(folder.getName())){
 				folderNode = node;
 			}else{
-				folderNode = new FileTreeNode(folder, node);	
+				folderNode = new FileTreeNode(folder, node);
 			}
 			
 			List<Folder> subFolders = DLAppLocalServiceUtil.getFolders(groupId, folder.getFolderId());
 			if(subFolders != null){
 				for (Folder folder2 : subFolders) {
-					getFolderContent(folder2, folderNode);
+					getFolderContent(map, folder2, folderNode);
 				}						
 			}
 			
@@ -186,7 +149,12 @@ public class LocalFileTree implements Serializable{
 			if(subFiles != null){
 				for (FileEntry file : subFiles) {
 					if(extentionFilter == null || extentionFilter.equalsIgnoreCase(file.getExtension())){
-						new FileTreeNode(file, folderNode, null);
+						FileInfoDTO fileDTO = map.get(file.getFileEntryId());
+						if(fileDTO != null){
+							new FileTreeNode(file, folderNode, fileDTO.getDocumentRecordId());
+						}else{
+							new FileTreeNode(file, folderNode, null);
+						}
 					}
 				}				
 			}
@@ -256,11 +224,13 @@ public class LocalFileTree implements Serializable{
 		
 	}
 
-
 	private Folder _addFolder(Folder parentFolder, String newFolderName) {
 		Folder newFolder = null;
 		
 		try {
+			
+			newFolderName = ResourceUtility.convertToLiferayDocName(newFolderName);
+			
 			List<Folder> subFolders = DLAppLocalServiceUtil.getFolders(parentFolder.getRepositoryId(), parentFolder.getFolderId());
 			
 			if(subFolders!=null){
