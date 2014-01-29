@@ -316,7 +316,7 @@ public class ServerUtility {
 	
 	public static void logStackTrace(Exception e, Logger log){
     	
-    	int lines = 10;
+    	int lines = e.getStackTrace().length;
     	
     	if(lines > e.getStackTrace().length){
     		lines = e.getStackTrace().length;
