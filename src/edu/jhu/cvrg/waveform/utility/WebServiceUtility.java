@@ -155,7 +155,7 @@ public class WebServiceUtility {
 			StringBuilder filesId = new StringBuilder();
 			for(String key : filesMap.keySet()){
 				try {
-					OMElement fileElement = omFactory.createOMElement(key, omNamespace);
+					OMElement fileElement = omFactory.createOMElement("file_"+key, omNamespace);
 					FileEntry file  = filesMap.get(key);
 					
 					byte[] bytes = new byte[Long.valueOf(file.getSize()).intValue()];
