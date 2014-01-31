@@ -8,8 +8,10 @@ public enum PhysionetMethods{
 	RDSAMP("rdsamp", "rdsampWrapperType2"),
 	SIGAAMP("sigamp", "sigampWrapperType2"),
 	SQRS("sqrs", "sqrsWrapperType2"),
+	SQRS2CSV("sqrs2csv", "sqrs2csvWrapperType2"),
 	TACH("tach", "tachWrapperType2"),
 	WQRS("wqrs", "wqrsWrapperType2"),
+	WQRS2CSV("wqrs2csv", "wqrs2csvWrapperType2"),
 	WRSAMP("wrsamp", "wrsampWrapperType2"), 
 	CHESNOKOV("QT Screening", "chesnokovWrapperType2");
 	
