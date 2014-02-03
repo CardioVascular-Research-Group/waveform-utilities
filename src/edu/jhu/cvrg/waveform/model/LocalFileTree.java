@@ -61,8 +61,6 @@ public class LocalFileTree implements Serializable{
 	
 	private String extentionFilter;
 	
-	private Logger log = Logger.getLogger(LocalFileTree.class);
-	
 	public LocalFileTree (Long user){
 		initialize(user);
 	}
@@ -108,13 +106,13 @@ public class LocalFileTree implements Serializable{
 				
 				this.getFolderContent(this.extractFileIdList(files), rootFolder, treeRoot);
 			}else{
-				log.error(WAVEFORM_ROOT_FOLDER + " folder does not exist");
+				getLog().error(WAVEFORM_ROOT_FOLDER + " folder does not exist");
 			}
 			
 		} catch (PortalException e) {
-			log.error("Erro on tree loading. "+ e.getMessage());
+			getLog().error("Erro on tree loading. "+ e.getMessage());
 		} catch (SystemException e) {
-			log.error("Erro on tree loading. "+ e.getMessage());
+			getLog().error("Erro on tree loading. "+ e.getMessage());
 		}
 	}
 
@@ -159,9 +157,9 @@ public class LocalFileTree implements Serializable{
 				}				
 			}
 		} catch (PortalException e) {
-			log.error("Erro on tree loading. "+ e.getMessage());
+			getLog().error("Erro on tree loading. "+ e.getMessage());
 		} catch (SystemException e) {
-			log.error("Erro on tree loading. "+ e.getMessage());
+			getLog().error("Erro on tree loading. "+ e.getMessage());
 		}
 	}
 	
@@ -248,9 +246,9 @@ public class LocalFileTree implements Serializable{
 			}
 			
 		} catch (PortalException e) {
-			log.error("Error on add folder. " + e.getMessage());
+			getLog().error("Error on add folder. " + e.getMessage());
 		} catch (SystemException e) {
-			log.error("Error on add folder. " + e.getMessage());
+			getLog().error("Error on add folder. " + e.getMessage());
 		}
 		return newFolder;
 	}
@@ -363,6 +361,9 @@ public class LocalFileTree implements Serializable{
 		this.selectedNodes = selectedNodes;
 	}
 	
+	private Logger getLog(){
+		return Logger.getLogger(this.getClass());
+	}
 	
 
 }
