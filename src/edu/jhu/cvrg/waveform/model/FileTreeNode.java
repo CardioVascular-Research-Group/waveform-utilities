@@ -6,9 +6,12 @@ import org.primefaces.model.TreeNode;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 
+import edu.jhu.cvrg.dbapi.dto.FileInfoDTO;
+
 public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 
 	protected static final String FILE_ERROR_TYPE = "document_error";
+	protected static final String FILE_ANALYSIS_TYPE = "analysis";
 	protected static final String FILE_TYPE = "document";
 	protected static final String FOLDER_TYPE = "default";
 
@@ -16,6 +19,7 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 	
 	private Object content;
 	private Long documentRecordId;
+	private Long analysisJobId;
 	
 	public FileTreeNode(String type, Folder folder, TreeNode parentNode) {
 		super(type, folder.getName(), parentNode);
@@ -33,16 +37,21 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 		this.setContent(folder);
 	}
 	
-	public FileTreeNode(FileEntry fileEntry, TreeNode parentNode, Long documentRecordId) {
+	public FileTreeNode(FileEntry fileEntry, TreeNode parentNode, FileInfoDTO dto) {
 		super(fileEntry.getTitle(), parentNode);
-		this.documentRecordId = documentRecordId;
 		this.setContent(fileEntry);
-		if(documentRecordId != null){
-			this.setType(FILE_TYPE);
-		}else{
-			this.setType(FILE_ERROR_TYPE);
+		if(dto != null){
+			this.documentRecordId = dto.getDocumentRecordId();
+			this.analysisJobId = dto.getAnalysisJobId();
+			
+			if(analysisJobId != null){
+				this.setType(FILE_ANALYSIS_TYPE);
+			}else if(documentRecordId != null){
+					this.setType(FILE_TYPE);
+			}else{
+				this.setType(FILE_ERROR_TYPE);
+			}
 		}
-		
 	}
 
 	public Object getContent() {
@@ -55,6 +64,10 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 
 	public Long getDocumentRecordId() {
 		return documentRecordId;
+	}
+
+	public Long getAnalysisJobId() {
+		return analysisJobId;
 	}	
 	
 }

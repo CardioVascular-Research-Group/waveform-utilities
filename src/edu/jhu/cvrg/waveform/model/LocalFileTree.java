@@ -149,7 +149,7 @@ public class LocalFileTree implements Serializable{
 					if(extentionFilter == null || extentionFilter.equalsIgnoreCase(file.getExtension())){
 						FileInfoDTO fileDTO = map.get(file.getFileEntryId());
 						if(fileDTO != null){
-							new FileTreeNode(file, folderNode, fileDTO.getDocumentRecordId());
+							new FileTreeNode(file, folderNode, fileDTO);
 						}else{
 							new FileTreeNode(file, folderNode, null);
 						}
