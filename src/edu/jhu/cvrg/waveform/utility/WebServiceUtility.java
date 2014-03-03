@@ -22,8 +22,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -46,6 +49,9 @@ import org.apache.axis2.addressing.EndpointReference;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.transport.http.HTTPConstants;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -314,7 +320,7 @@ public class WebServiceUtility {
 	 * @return - long definition text
 	 */
 
-	public static String annotationLookup(String restURL){
+	public static String annotationXMLLookup(String restURL){
 		String definition="WARNING TEST FILLER From BrokerServiceImpl.java";
 		String label ="TEST LABEL";
 		String sReturn = "";
@@ -373,30 +379,84 @@ public class WebServiceUtility {
 			}
 		return sReturn;
 	}
+	
+	
+	public static Map<String, String> annotationJSONLookup(String restURL, String ... key){
+		
+		Map<String, String> ret = null;
+	    URL url;
+	    try {
+			url = new URL(restURL);
+			
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("Accept", "application/json");
+			
+			BufferedReader in = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+			
+			String jsonSrc = in.readLine();
+			in.close();
+			
+			JSONObject jsonObject = new JSONObject(jsonSrc);
+			ret = new HashMap<String, String>();
+			
+			for (int i = 0; i < key.length; i++) {
+				Object atr = jsonObject.get(key[i]);
+				String value = "";	
+				if(atr instanceof JSONArray){
+					JSONArray array = ((JSONArray) atr);
+					for (int j = 0; j < array.length(); j++) {
+						value +=array.getString(j);	
+					}
+				}else {
+					value = atr.toString(); 
+				}
+				if(value.isEmpty()){
+					value = "No " + key[i] + " found";
+				}
+				ret.put(key[i], value);
+			}
+		
+	    }catch(MalformedURLException mue){
+	    	mue.printStackTrace();
+	    } catch (IOException ioe) {
+			ioe.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
 
 	/** Looks up the Long definition of an ECG Ontology node ID.
 	 * 
 	 * @param sNodeID -  node ID from the ECG ontology tree. e.g. "ECGTermsv1:ECG_000000103" for Q_Wave
 	 * @return
 	 */
-	public static String[] lookupOntologyDefinition(String sNodeID){ // e.g. "ECGTermsv1:ECG_000000103" for Q_Wave
-		String[] sRet = new String[2];
-		String sDefinition="No definition found";
-		String sLabel = "No label found";
-		String ontID="2079";
+	public static Map<String, String> lookupOntology(String ontology, String sNodeID, String ... atributes){ // e.g. "ECGTermsv1:ECG_000000103" for Q_Wave
+		
 		String apikey="24e0e602-54e0-11e0-9d7b-005056aa3316";
 		String port="80";
 		
+		String sRestURL = getAnnotationRestURL(sNodeID, ontology, apikey, port);
+		return WebServiceUtility.annotationJSONLookup(sRestURL, atributes);
 		
-		String sRestURL = getAnnotationRestURL(sNodeID, ontID, apikey, port);
-		sDefinition = WebServiceUtility.annotationLookup(sRestURL);
-		int iEndOfLabel = sDefinition.indexOf("</label>");
-		sLabel = sDefinition.substring(7, iEndOfLabel);
-		sDefinition = sDefinition.substring(iEndOfLabel + 8);
+	}
 	
-		sRet[0] = sLabel;
-		sRet[1] = sDefinition;
-		return sRet;
+	public static void main(String[] args) {
+		
+		String[] atrs = {"definition", "prefLabel"};
+		
+		Map<String, String> ret = WebServiceUtility.lookupOntology("ECGT", "http%3A%2F%2Fwww.cvrgrid.org%2Ffiles%2FECGTermsv1.owl%23ECG_000000236", atrs);
+		for (int i = 0; i < atrs.length; i++) {
+			System.out.println(ret.get(atrs[i]));	
+		}
+		
+		ret = WebServiceUtility.lookupOntology("ECGT", "http://www.cvrgrid.org/files/ECGTermsv1.owl#ECG_000000023", atrs);
+		for (int i = 0; i < atrs.length; i++) {
+			System.out.println(ret.get(atrs[i]));	
+		}
+		
+		
 	}
 
 
@@ -409,8 +469,16 @@ public class WebServiceUtility {
 	 * @return -  the REST URL.
 	 */
 	public static String getAnnotationRestURL(String treeNodeID, String ontID, String apikey, String port){
-		treeNodeID = treeNodeID.replace(":", "%3A");
-		String restURL = "http://rest.bioontology.org:" + port + "/bioportal/virtual/ontology/" + ontID + "?conceptid=" + treeNodeID + "&apikey=" + apikey;
+		
+		if(treeNodeID.contains("http://")){
+			try {
+				treeNodeID = URLEncoder.encode(treeNodeID, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		String restURL = "http://data.bioontology.org" + ("80".equals(port) ? "" : (':'+port)) + "/ontologies/" + ontID + "/classes/" + treeNodeID + "?apikey=" + apikey;
 		return restURL;
 	}
 	
