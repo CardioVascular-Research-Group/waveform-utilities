@@ -51,6 +51,8 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 			}else{
 				this.setType(FILE_ERROR_TYPE);
 			}
+		}else{
+			this.setType(FILE_ERROR_TYPE);
 		}
 	}
 
