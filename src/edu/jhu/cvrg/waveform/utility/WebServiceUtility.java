@@ -434,41 +434,19 @@ public class WebServiceUtility {
 	 */
 	public static Map<String, String> lookupOntology(String ontology, String sNodeID, String ... atributes){ // e.g. "ECGTermsv1:ECG_000000103" for Q_Wave
 		
-		String apikey="24e0e602-54e0-11e0-9d7b-005056aa3316";
-		String port="80";
-		
-		String sRestURL = getAnnotationRestURL(sNodeID, ontology, apikey, port);
+		String sRestURL = getAnnotationRestURL(sNodeID, ontology, ResourceUtility.getBioportalApikey());
 		return WebServiceUtility.annotationJSONLookup(sRestURL, atributes);
 		
 	}
 	
-	public static void main(String[] args) {
-		
-		String[] atrs = {"definition", "prefLabel"};
-		
-		Map<String, String> ret = WebServiceUtility.lookupOntology("ECGT", "http%3A%2F%2Fwww.cvrgrid.org%2Ffiles%2FECGTermsv1.owl%23ECG_000000236", atrs);
-		for (int i = 0; i < atrs.length; i++) {
-			System.out.println(ret.get(atrs[i]));	
-		}
-		
-		ret = WebServiceUtility.lookupOntology("ECGT", "http://www.cvrgrid.org/files/ECGTermsv1.owl#ECG_000000023", atrs);
-		for (int i = 0; i < atrs.length; i++) {
-			System.out.println(ret.get(atrs[i]));	
-		}
-		
-		
-	}
-
-
 	/** Generates the URL of the REST call which will return the details of this Ontology Concept.
 	 * 
 	 * @param treeNodeID - Node ID returned by the Ontology tree when the concept was selected. e.g ""
 	 * @param ontID - id of the ontology to search, e.g. "2079"
 	 * @param apikey - JHU's key to use the bioportal lookup service, e.g. "24e0e602-54e0-11e0-9d7b-005056aa3316"
-	 * @param port - port number to include in the URL, e.g. "80"
 	 * @return -  the REST URL.
 	 */
-	public static String getAnnotationRestURL(String treeNodeID, String ontID, String apikey, String port){
+	public static String getAnnotationRestURL(String treeNodeID, String ontID, String apikey){
 		
 		if(treeNodeID.contains("http://")){
 			try {
@@ -478,7 +456,7 @@ public class WebServiceUtility {
 			}
 		}
 		
-		String restURL = "http://data.bioontology.org" + ("80".equals(port) ? "" : (':'+port)) + "/ontologies/" + ontID + "/classes/" + treeNodeID + "?apikey=" + apikey;
+		String restURL = ResourceUtility.getBioportalAPIServerURL() + "/ontologies/" + ontID + "/classes/" + treeNodeID + "?apikey=" + apikey;
 		return restURL;
 	}
 	

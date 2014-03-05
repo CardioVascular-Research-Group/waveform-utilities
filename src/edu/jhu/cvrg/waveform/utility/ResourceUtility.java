@@ -317,4 +317,31 @@ public class ResourceUtility {
 		
 		return str;
 	}
+	
+	public static String getBioportalAPIServerURL(){
+		String activeServer = getValue("bioportal.active.server");
+		
+		if(activeServer == null){
+			activeServer = "remote";
+		}
+		return  getValue("bioportal."+activeServer+".api.server.url");
+	}
+	
+	public static String getBioportalUIServerURL(){
+		String activeServer = getValue("bioportal.active.server");
+		
+		if(activeServer == null){
+			activeServer = "remote";
+		}
+		return  getValue("bioportal."+activeServer+".ui.server.url");
+	}
+	
+	public static String getBioportalApikey(){
+		String activeServer = getValue("bioportal.active.server");
+		
+		if(activeServer == null){
+			activeServer = "remote";
+		}
+		return  getValue("bioportal."+activeServer+".apikey");
+	}
 }
