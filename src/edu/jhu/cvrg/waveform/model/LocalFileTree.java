@@ -332,6 +332,58 @@ public class LocalFileTree implements Serializable{
 		}
 	}
 	
+	public FileTreeNode getNodeByReference(String ref){
+		
+		if(ref!=null){
+			String[] treeIds = ref.split("_");
+			
+			TreeNode target = treeRoot;
+			
+			for(int i = 0; i < treeIds.length; i++){
+				target = target.getChildren().get(Integer.valueOf(treeIds[i]));
+			}
+			
+			return (FileTreeNode) target;
+		}
+		return null;
+	}
+	
+	public List<FileTreeNode> getNodesByReference(String ref){
+		
+		List<FileTreeNode> ret = null;
+		
+		if(ref!=null){
+			String[] treeIds = ref.split("_");
+			
+			TreeNode target = treeRoot;
+			
+			for(int i = 0; i < treeIds.length; i++){
+				target = target.getChildren().get(Integer.valueOf(treeIds[i]));
+			}
+			
+			ret = new ArrayList<FileTreeNode>();
+			
+			getLeafs(ret, target);
+			
+			return ret;
+		}
+		return null;
+	}
+
+
+	private void getLeafs(List<FileTreeNode> ret, TreeNode target) {
+		if(!target.isLeaf()){
+			for(TreeNode n : target.getChildren()){
+				if(n.isLeaf()){
+					ret.add((FileTreeNode)n);
+				}else{
+					getLeafs(ret, n);
+				}
+			}
+		}else{
+			ret.add((FileTreeNode)target);
+		}
+	}
 
 	public FileTreeNode getTreeRoot() {
 		return treeRoot;
