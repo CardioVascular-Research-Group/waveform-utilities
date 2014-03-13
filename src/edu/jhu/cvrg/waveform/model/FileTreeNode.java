@@ -37,8 +37,11 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 		this.setContent(folder);
 	}
 	
-	public FileTreeNode(FileEntry fileEntry, TreeNode parentNode, FileInfoDTO dto) {
-		super(fileEntry.getTitle(), parentNode);
+	public FileTreeNode(FileEntry fileEntry, TreeNode parentNode, FileInfoDTO dto, boolean hideExtension) {
+		super(getNodeName(fileEntry, hideExtension), parentNode);
+		
+		this.setParent(parentNode);	
+		
 		this.setContent(fileEntry);
 		if(dto != null){
 			this.documentRecordId = dto.getDocumentRecordId();
@@ -53,6 +56,14 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 			}
 		}else{
 			this.setType(FILE_ERROR_TYPE);
+		}
+	}
+
+	private static String getNodeName(FileEntry fileEntry, boolean hideExtension) {
+		if(hideExtension){
+			return fileEntry.getTitle().substring(0, fileEntry.getTitle().lastIndexOf('.'));
+		}else{
+			return fileEntry.getTitle();
 		}
 	}
 

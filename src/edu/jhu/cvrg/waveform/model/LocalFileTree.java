@@ -61,6 +61,8 @@ public class LocalFileTree implements Serializable{
 	
 	private String extentionFilter;
 	
+	private boolean hideExtension = false;
+	
 	public LocalFileTree (Long user){
 		initialize(user);
 	}
@@ -68,6 +70,7 @@ public class LocalFileTree implements Serializable{
 	
 	public LocalFileTree (Long user, String extentionFilter){
 		this.extentionFilter = extentionFilter;
+		this.hideExtension = (extentionFilter != null);
 		initialize(user);
 	}
 	
@@ -144,17 +147,33 @@ public class LocalFileTree implements Serializable{
 			}
 			
 			List<FileEntry> subFiles = DLAppLocalServiceUtil.getFileEntries(groupId, folder.getFolderId());
-			if(subFiles != null){
+			if(subFiles != null && subFiles.size() > 0){
+				List<FileEntry> nodeList = new ArrayList<FileEntry>();
 				for (FileEntry file : subFiles) {
 					if(extentionFilter == null || extentionFilter.equalsIgnoreCase(file.getExtension())){
+						nodeList.add(file);
+					}
+				}
+				
+				if(nodeList.size() == 1){
+					FileEntry file = nodeList.get(0);
+					FileInfoDTO fileDTO = map.get(file.getFileEntryId());
+					if(fileDTO != null){
+						new FileTreeNode(file, folderNode.getParent(), fileDTO, hideExtension);
+					}else{
+						new FileTreeNode(file, folderNode.getParent(), null, hideExtension);
+					}
+					folderNode.getParent().getChildren().remove(folderNode);
+				}else{
+					for (FileEntry file : nodeList) {
 						FileInfoDTO fileDTO = map.get(file.getFileEntryId());
 						if(fileDTO != null){
-							new FileTreeNode(file, folderNode, fileDTO);
+							new FileTreeNode(file, folderNode, fileDTO, hideExtension);
 						}else{
-							new FileTreeNode(file, folderNode, null);
-						}
+							new FileTreeNode(file, folderNode, null, hideExtension);
+						}	
 					}
-				}				
+				}
 			}
 		} catch (PortalException e) {
 			getLog().error("Erro on tree loading. "+ e.getMessage());
