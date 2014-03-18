@@ -351,6 +351,15 @@ public class LocalFileTree implements Serializable{
 		}
 	}
 	
+	public FileTreeNode getLeafByName(String nodeName){
+		
+		if(nodeName!=null){
+			return getLeafByName(treeRoot, nodeName);
+		}
+		return null;
+	}
+	
+	
 	public FileTreeNode getNodeByReference(String ref){
 		
 		if(ref!=null){
@@ -395,8 +404,10 @@ public class LocalFileTree implements Serializable{
 	private void getLeafs(List<FileTreeNode> ret, TreeNode target) {
 		if(!target.isLeaf()){
 			for(TreeNode n : target.getChildren()){
-				if(n.isLeaf() && FileTreeNode.FILE_TYPE.equals(n.getType())){
-					ret.add((FileTreeNode)n);
+				if(n.isLeaf()){
+					if(FileTreeNode.FILE_TYPE.equals(n.getType())){
+						ret.add((FileTreeNode)n);	
+					}
 				}else{
 					getLeafs(ret, n);
 				}
@@ -404,6 +415,29 @@ public class LocalFileTree implements Serializable{
 		}else if(target.isLeaf() && FileTreeNode.FILE_TYPE.equals(target.getType())){
 			ret.add((FileTreeNode)target);
 		}
+	}
+	
+	private FileTreeNode getLeafByName(TreeNode target, String name) {
+		if(!target.isLeaf()){
+			for(TreeNode n : target.getChildren()){
+				if(n.isLeaf()){
+					if(FileTreeNode.FILE_TYPE.equals(n.getType()) && n.getData().equals(name)){
+						return (FileTreeNode) n;	
+					}
+				}else{
+					FileTreeNode ret = getLeafByName(n, name);
+					if(ret!=null){
+						return ret;	
+					}
+					
+				}
+			}
+		}else if(target.isLeaf() && FileTreeNode.FILE_TYPE.equals(target.getType()) && target.getData().equals(name)){
+			return (FileTreeNode)target;
+		}
+		
+		return null;
+		
 	}
 
 	public FileTreeNode getTreeRoot() {

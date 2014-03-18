@@ -66,6 +66,24 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 			return fileEntry.getTitle();
 		}
 	}
+	
+	public String getTreePath(){
+		StringBuilder sb = new StringBuilder();
+		
+		this.getPath(getParent(), sb);
+		
+		return sb.toString();
+	}
+	
+	
+	private void getPath(TreeNode node, StringBuilder path){
+		if(node != null){
+			if(node.getParent() !=null ){
+				getPath(node.getParent(), path);
+				path.append('/').append(node.getData());
+			}
+		}
+	}
 
 	public Object getContent() {
 		return content;
