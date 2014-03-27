@@ -288,7 +288,7 @@ public class ResourceUtility {
 	
 	public static void showMessages(String title, List<FacesMessage> messages) {
 		Severity severity = FacesMessage.SEVERITY_INFO;
-    	StringBuilder sb = new StringBuilder("<br /><ul>");
+    	StringBuilder sb = new StringBuilder("<br /><ul id=\"wfmessages\">");
     	for (FacesMessage m : messages) {
     		if(m.getSeverity().getOrdinal() > severity.getOrdinal()){
     			severity = m.getSeverity();
