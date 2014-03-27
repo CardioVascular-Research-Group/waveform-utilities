@@ -283,7 +283,7 @@ public class LocalFileTree implements Serializable{
 		if(FileTreeNode.FOLDER_TYPE.equals(selectedNode.getType())){
 			return (Folder) selectedNode.getContent();
 		}else{
-			return null;
+			return (Folder) ((FileTreeNode)selectedNode.getParent()).getContent();
 		}
 	}
 	
