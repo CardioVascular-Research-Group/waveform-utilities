@@ -8,9 +8,9 @@ import org.xmldb.api.base.ResourceIterator;
 import org.xmldb.api.base.ResourceSet;
 
 import edu.jhu.cvrg.dbapi.XMLUtility;
-import edu.jhu.cvrg.waveform.model.Algorithm;
+import edu.jhu.cvrg.dbapi.dto.AdditionalParameters;
+import edu.jhu.cvrg.dbapi.dto.Algorithm;
 import edu.jhu.cvrg.waveform.utility.AnalysisInProgress;
-import edu.jhu.cvrg.waveform.utility.AdditionalParameters;
 import edu.jhu.cvrg.waveform.utility.AnalysisProgressQueryBuilder;
 
 public class AnalysisUtility extends XMLUtility implements Serializable{
@@ -341,19 +341,19 @@ public class AnalysisUtility extends XMLUtility implements Serializable{
 	public  String createAlgorithmToProcessWith(Algorithm alDetails){
 		String AlgorithmToProcess = "	<algorithmToProcessWith>\n" + 
 		"		<algorithm>\n" +
-		"			<algorithmName>" + alDetails.getsServiceName() + "</algorithmName>\n" +
-		"			<algorithmDisplayText>" + alDetails.getsDisplayShortName() + "</algorithmDisplayText>\n" +
-		"			<algorithmMethod>" + alDetails.getsServiceMethod()+ "</algorithmMethod>\n" +
-		"			<algorithmLocation>" + alDetails.getsAnalysisServiceURL() + "</algorithmLocation>\n" +
+		"			<algorithmName>" + alDetails.getServiceName() + "</algorithmName>\n" +
+		"			<algorithmDisplayText>" + alDetails.getDisplayShortName() + "</algorithmDisplayText>\n" +
+		"			<algorithmMethod>" + alDetails.getServiceMethod()+ "</algorithmMethod>\n" +
+		"			<algorithmLocation>" + alDetails.getAnalysisServiceURL() + "</algorithmLocation>\n" +
 		"		</algorithm>\n";
 
-		for(AdditionalParameters parameter : alDetails.getaParameters()){
+		for(AdditionalParameters parameter : alDetails.getParameters()){
 			AlgorithmToProcess +=
 				"		<parameters>\n" +
-				"			<name>" + parameter.getsParameterFlag() + "</name>\n" +
+				"			<name>" + parameter.getParameterFlag() + "</name>\n" +
 				//FIXME: when annotation parameters are implemented			"			<value>" + alDetails.aParameters[p].sParameterUserSpecifiedValue + "</value>\n" +
-				"			<value>" + parameter.getsParameterDefaultValue() + "</value>\n" +
-				"			<description>" + parameter.getsToolTipDescription() + "</description>\n" +
+				"			<value>" + parameter.getParameterDefaultValue() + "</value>\n" +
+				"			<description>" + parameter.getToolTipDescription() + "</description>\n" +
 				"		</parameters>\n";
 		}
 
@@ -678,14 +678,14 @@ public class AnalysisUtility extends XMLUtility implements Serializable{
 		int descEnd   = paramXML.indexOf("</description>");
 
 		if((nameStart != -1) & (nameEnd != -1) & (descStart != -1)  & (descEnd != -1) ){
-			param.setsParameterFlag(paramXML.substring(nameStart, nameEnd).trim());
+			param.setParameterFlag(paramXML.substring(nameStart, nameEnd).trim());
 			if ((valueStart != -1)  & (valueEnd != -1)){
-				param.setsParameterUserSpecifiedValue(paramXML.substring(valueStart, valueEnd).trim());
+				param.setParameterUserSpecifiedValue(paramXML.substring(valueStart, valueEnd).trim());
 			}else{
-				param.setsParameterUserSpecifiedValue(""); // blank value has only <value/>, not <value></value>
+				param.setParameterUserSpecifiedValue(""); // blank value has only <value/>, not <value></value>
 			}
 
-			param.setsDisplayShortName(paramXML.substring(descStart, descEnd).trim());
+			param.setDisplayShortName(paramXML.substring(descStart, descEnd).trim());
 		}
 		return param;
 	}

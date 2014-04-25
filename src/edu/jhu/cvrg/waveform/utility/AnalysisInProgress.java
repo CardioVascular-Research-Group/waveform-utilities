@@ -2,7 +2,7 @@ package edu.jhu.cvrg.waveform.utility;
 
 import java.io.Serializable;
 
-import edu.jhu.cvrg.waveform.utility.AdditionalParameters;
+import edu.jhu.cvrg.dbapi.dto.AdditionalParameters;
 
 public class AnalysisInProgress implements Serializable {
 
