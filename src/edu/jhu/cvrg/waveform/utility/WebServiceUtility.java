@@ -220,6 +220,7 @@ public class WebServiceUtility {
 													   String serviceURL,
 													   SvcAxisCallback callback,
 													   Map<String, FileEntry> filesMap){
+		System.out.println("waveform-utilities.WebServiceUtility.callWebServiceComplexParam()");
 
 		String serviceTarget = "";
 		
@@ -248,6 +249,7 @@ public class WebServiceUtility {
 		OMElement result = null;
 		try {
 			if(callback == null){
+				System.out.println("Service/method, no callback:" + serviceName + "/" + serviceMethod);
 				//  Directly invoke an anonymous operation with an In-Out message exchange pattern.
 				result = sender.sendReceive(omWebService);
 				StringWriter writer = new StringWriter();
@@ -255,6 +257,7 @@ public class WebServiceUtility {
 				writer.flush();
 			}
 			else{
+				System.out.println("Service/method, WITH callback:" + serviceName + "/" + serviceMethod);
 				// Directly invoke an anonymous operation with an In-Out message exchange pattern without waiting for a response.
 				sender.sendReceiveNonBlocking(omWebService, callback);
 			}
