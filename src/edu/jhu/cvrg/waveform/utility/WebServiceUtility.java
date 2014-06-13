@@ -274,14 +274,17 @@ public class WebServiceUtility {
 	
 	private static void extractParameter(Map<String, ?> map, OMFactory omFactory, OMNamespace omNamespace, OMElement omWebService){
 		for(String key : map.keySet()){
-			if(key.endsWith("List") | key.endsWith("list") | map.get(key) instanceof Map){
-				OMElement omList = omFactory.createOMElement(key, omNamespace);
-				@SuppressWarnings("unchecked")
-				Map<String, Object> listMap = (Map<String, Object>) map.get(key);
-				extractParameter(listMap, omFactory, omNamespace, omList);
-				omWebService.addChild(omList);
-			}else{
-				addOMEChild(key.toString(), map.get(key).toString(), omWebService);
+			System.out.println(" ** WebServiceUtility.extractParameter key: " + key + " value:" + map.get(key));
+			if(map.get(key) != null){
+				if(key.endsWith("List") | key.endsWith("list") | map.get(key) instanceof Map){
+					OMElement omList = omFactory.createOMElement(key, omNamespace);
+					@SuppressWarnings("unchecked")
+					Map<String, Object> listMap = (Map<String, Object>) map.get(key);
+					extractParameter(listMap, omFactory, omNamespace, omList);
+					omWebService.addChild(omList);
+				}else{
+					addOMEChild(key.toString(), map.get(key).toString(), omWebService);
+				}
 			}
 		}
 	}
