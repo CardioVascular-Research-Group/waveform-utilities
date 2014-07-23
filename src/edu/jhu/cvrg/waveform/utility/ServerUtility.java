@@ -148,12 +148,16 @@ public class ServerUtility {
 	  * @param iLeadCount - total number of leads in the data set.
 	  * @return - one of "I","II","III","aVR","aVL","aVF","V1","V2","V3","V4","V5", or "V6" ("VX","VY","VZ")
 	  */
-	 public String guessLeadName(int iLeadNum, int iLeadCount){
+	 public static String guessLeadName(int iLeadNum, int iLeadCount){
 		 String sLeadName = "uk";
+		 String[] sa2Names = {"II","MCL1"};
 		 String[] sa3Names = {"I","II","III"};
 		 String[] sa12Names = {"I","II","III","aVR","aVL","aVF","V1","V2","V3","V4","V5","V6"};
 		 String[] sa15Names = {"I","II","III","aVR","aVL","aVF","V1","V2","V3","V4","V5","V6","VX","VY","VZ"};
 		 
+		 if(iLeadCount==2){
+			 sLeadName = sa2Names[iLeadNum];
+		 }
 		 if(iLeadCount==3){
 			 sLeadName = sa3Names[iLeadNum];
 		 }

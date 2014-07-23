@@ -539,35 +539,4 @@ public class WebServiceUtility {
 
 		return ret;
 	}
-
-	 /** Return our current best guess of the name of a lead <BR>
-	  * based on the total lead count and the zero based lead number.<BR>
-	  * Holter lead names are not yet know, so are not included.
-	  * 
-	  * @param iLeadNum - Zero based lead number, e.g. first lead in a data set(array) is number zero.
-	  * @param iLeadCount - total number of leads in the data set.
-	  * @return - one of "I","II","III","aVR","aVL","aVF","V1","V2","V3","V4","V5", or "V6" ("VX","VY","VZ")
-	  */
-	 public static String guessLeadName(int iLeadNum, int iLeadCount){
-		 String sLeadName = "uk";
-		 String[] sa2Names = {"II","MCL1"};
-		 String[] sa3Names = {"I","II","III"};
-		 String[] sa12Names = {"I","II","III","aVR","aVL","aVF","V1","V2","V3","V4","V5","V6"};
-		 String[] sa15Names = {"I","II","III","aVR","aVL","aVF","V1","V2","V3","V4","V5","V6","VX","VY","VZ"};
-		 
-		 if(iLeadCount==2){
-			 sLeadName = sa2Names[iLeadNum];
-		 }
-		 if(iLeadCount==3){
-			 sLeadName = sa3Names[iLeadNum];
-		 }
-		 if(iLeadCount==12){
-			 sLeadName = sa12Names[iLeadNum];
-		 }
-		 if(iLeadCount==15){
-			 sLeadName = sa15Names[iLeadNum];
-		 }
-		 
-		 return sLeadName;
-	 }
 }
