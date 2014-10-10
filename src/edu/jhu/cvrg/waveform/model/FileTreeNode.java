@@ -6,7 +6,7 @@ import org.primefaces.model.TreeNode;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 
-import edu.jhu.cvrg.dbapi.dto.FileInfoDTO;
+import edu.jhu.cvrg.data.dto.FileInfoDTO;
 
 public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 

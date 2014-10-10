@@ -2,7 +2,7 @@ package edu.jhu.cvrg.waveform.utility;
 
 import java.io.Serializable;
 
-import edu.jhu.cvrg.dbapi.dto.AdditionalParameters;
+import edu.jhu.cvrg.data.dto.AdditionalParametersDTO;
 
 public class AnalysisInProgress implements Serializable {
 
@@ -20,7 +20,7 @@ public class AnalysisInProgress implements Serializable {
 	private String[] asResultHandleList;
 	private String[] asResultFileList;
 	private String analysisServiceURL;
-	private AdditionalParameters[] aParameterList;
+	private AdditionalParametersDTO[] aParameterList;
 	
 	/**
 	 * @return the jobID
@@ -120,10 +120,10 @@ public class AnalysisInProgress implements Serializable {
 	public String getAnalysisServiceURL() {
 		return analysisServiceURL;
 	}
-	public void setaParameterList(AdditionalParameters[] aParameterList) {
+	public void setaParameterList(AdditionalParametersDTO[] aParameterList) {
 		this.aParameterList = aParameterList;
 	}
-	public AdditionalParameters[] getaParameterList() {
+	public AdditionalParametersDTO[] getaParameterList() {
 		return aParameterList;
 	}
 	/** get the full url of the file copying Web Service without the method.

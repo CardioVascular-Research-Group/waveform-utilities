@@ -38,9 +38,10 @@ import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 
-import edu.jhu.cvrg.dbapi.dto.FileInfoDTO;
-import edu.jhu.cvrg.dbapi.factory.Connection;
-import edu.jhu.cvrg.dbapi.factory.ConnectionFactory;
+import edu.jhu.cvrg.data.dto.FileInfoDTO;
+import edu.jhu.cvrg.data.factory.Connection;
+import edu.jhu.cvrg.data.factory.ConnectionFactory;
+import edu.jhu.cvrg.data.util.DataStorageException;
 import edu.jhu.cvrg.waveform.utility.ResourceUtility;
 
 public class LocalFileTree implements Serializable{
@@ -78,9 +79,13 @@ public class LocalFileTree implements Serializable{
 		this.userId = userId;
 		this.groupId = ResourceUtility.getCurrentGroupId();
 		this.USER_ROOT_FOLDER = String.valueOf(userId);
-		Connection con = ConnectionFactory.createConnection();
 		
-		buildTree(con);
+		try {
+			Connection con = ConnectionFactory.createConnection();
+			buildTree(con);
+		} catch (DataStorageException e) {
+			getLog().error("Erro on tree loading. "+ e.getMessage());
+		}
 		
 	}
 
@@ -115,6 +120,8 @@ public class LocalFileTree implements Serializable{
 		} catch (PortalException e) {
 			getLog().error("Erro on tree loading. "+ e.getMessage());
 		} catch (SystemException e) {
+			getLog().error("Erro on tree loading. "+ e.getMessage());
+		} catch (DataStorageException e) {
 			getLog().error("Erro on tree loading. "+ e.getMessage());
 		}
 	}

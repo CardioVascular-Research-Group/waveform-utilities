@@ -1,6 +1,6 @@
 package edu.jhu.cvrg.waveform.model;
 
-import edu.jhu.cvrg.dbapi.dto.DocumentRecordDTO;
+import edu.jhu.cvrg.data.dto.DocumentRecordDTO;
 
 public class DocumentDragVO {
 
