@@ -47,7 +47,7 @@
     	<mkdir dir="build"/>
         <mkdir dir="build/classes"/>
 
-        <javac includeantruntime="false" srcdir="src" destdir="build/classes" target="1.5" debug="true">
+        <javac includeantruntime="false" srcdir="src/main/java" destdir="build/classes" target="1.5" debug="true">
         	<classpath refid="project-classpath"/>
         	<compilerarg value="-Xlint:unchecked"/>
         </javac>
