@@ -15,7 +15,7 @@
   <classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0.1/geronimo-stax-api_1.0_spec-1.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/axis2/axis2/1.4.1/axis2-1.4.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/primefaces/primefaces/4.0/primefaces-4.0.jar"/>
-  <classpathentry kind="var" path="M2_REPO/edu/jhu/cvrg/cvrg-dataStorage/1.0-SNAPSHOT/cvrg-dataStorage-1.0-SNAPSHOT.jar"/>
+  <classpathentry kind="src" path="/cvrg-dataStorage"/>
   <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.17/log4j-1.2.17.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/hibernate/hibernate-core/4.2.8.Final/hibernate-core-4.2.8.Final.jar"/>
   <classpathentry kind="var" path="M2_REPO/antlr/antlr/2.7.7/antlr-2.7.7.jar"/>
@@ -26,9 +26,19 @@
   <classpathentry kind="var" path="M2_REPO/org/hibernate/javax/persistence/hibernate-jpa-2.0-api/1.0.1.Final/hibernate-jpa-2.0-api-1.0.1.Final.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/hibernate/common/hibernate-commons-annotations/4.0.2.Final/hibernate-commons-annotations-4.0.2.Final.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/postgresql/postgresql/9.3-1100-jdbc4/postgresql-9.3-1100-jdbc4.jar"/>
-  <classpathentry kind="var" path="M2_REPO/edu/jhu/cvrg/cvrg-analysisHub/1.0-SNAPSHOT/cvrg-analysisHub-1.0-SNAPSHOT.jar"/>
+  <classpathentry kind="src" path="/cvrg-analysisHub"/>
   <classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.3/commons-lang-2.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/jdom/jdom/1.1/jdom-1.1.jar"/>
+  <classpathentry kind="src" path="/ECG_Converter4"/>
+  <classpathentry kind="var" path="M2_REPO/jfree/jfreechart/1.0.9/jfreechart-1.0.9.jar"/>
+  <classpathentry kind="var" path="M2_REPO/jfree/jcommon/1.0.12/jcommon-1.0.12.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/xmlbeans/xmlbeans/2.4.0/xmlbeans-2.4.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/stax/stax-api/1.0.1/stax-api-1.0.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/pcj/pcj/1.2/pcj-1.2.jar"/>
+  <classpathentry kind="src" path="/jsierraecg"/>
+  <classpathentry kind="src" path="/Phlilips1.04"/>
+  <classpathentry kind="src" path="/schiller-data"/>
+  <classpathentry kind="var" path="M2_REPO/hl7OrgV3/aecg/1.0/aecg-1.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/liferay/portal/portal-service/6.1.1/portal-service-6.1.1.jar" sourcepath="M2_REPO/com/liferay/portal/portal-service/6.1.1/portal-service-6.1.1-sources.jar">
     <attributes>
       <attribute value="jar:file:/home/avilard4/.m2/repository/com/liferay/portal/portal-service/6.1.1/portal-service-6.1.1-javadoc.jar!/" name="javadoc_location"/>

@@ -2,7 +2,14 @@
 <projectDescription>
   <name>waveform-utilities</name>
   <comment>NO_M2ECLIPSE_SUPPORT: Project files created with the maven-eclipse-plugin are not supported in M2Eclipse.</comment>
-  <projects/>
+  <projects>
+    <project>cvrg-dataStorage</project>
+    <project>cvrg-analysisHub</project>
+    <project>ECG_Converter4</project>
+    <project>jsierraecg</project>
+    <project>Phlilips1.04</project>
+    <project>schiller-data</project>
+  </projects>
   <buildSpec>
     <buildCommand>
       <name>org.eclipse.jdt.core.javabuilder</name>
