@@ -61,6 +61,8 @@ import edu.jhu.cvrg.waveform.callbacks.SvcAxisCallback;
 
 public class WebServiceUtility {
 	
+	private static final String CVRG_ONTOLOGY_PREFIX_ID = "http://www.cvrgrid.org/files/";
+
 	private WebServiceUtility(){}
 
 	/** Generic function for calling web services on the same server (localhost) as the ECGWaveform web pages.
@@ -81,7 +83,7 @@ public class WebServiceUtility {
 			Map<String, FileEntry> filesMap){
 		OMElement result = null;
 		
-		String analysisServiceURL = ResourceUtility.getAnalysisServiceURL();	
+		String analysisServiceURL = ServiceProperties.getInstance().getProperty(ServiceProperties.MAIN_SERVICE_URL);	
 
 		result = callWebService(parameterMap, 
 				serviceMethod, 
@@ -108,7 +110,7 @@ public class WebServiceUtility {
 										   SvcAxisCallback callback){
 		OMElement result = null;
 		
-		String analysisServiceURL = ResourceUtility.getAnalysisServiceURL();	
+		String analysisServiceURL = ServiceProperties.getInstance().getProperty(ServiceProperties.MAIN_SERVICE_URL);	
 
 		result = callWebService(parameterMap, 
 				serviceMethod, 
@@ -440,7 +442,11 @@ public class WebServiceUtility {
 	 */
 	public static Map<String, String> lookupOntology(String ontology, String sNodeID, String ... atributes){ // e.g. "ECGTermsv1:ECG_000000103" for Q_Wave
 		
-		String sRestURL = getAnnotationRestURL(sNodeID, ontology, ResourceUtility.getBioportalApikey());
+		if(!sNodeID.contains("http")){
+			sNodeID = CVRG_ONTOLOGY_PREFIX_ID+sNodeID;
+		}
+		
+		String sRestURL = getAnnotationRestURL(sNodeID, ontology, ServiceProperties.getInstance().getBioportalApikey());
 		return WebServiceUtility.annotationJSONLookup(sRestURL, atributes);
 		
 	}
@@ -462,7 +468,7 @@ public class WebServiceUtility {
 			}
 		}
 		
-		String restURL = ResourceUtility.getBioportalAPIServerURL() + "/ontologies/" + ontID + "/classes/" + treeNodeID + "?apikey=" + apikey;
+		String restURL = ServiceProperties.getInstance().getBioportalAPIServerURL() + "/ontologies/" + ontID + "/classes/" + treeNodeID + "?apikey=" + apikey;
 		return restURL;
 	}
 	
