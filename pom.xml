@@ -35,21 +35,25 @@
 	    <groupId>edu.jhu.cvrg</groupId>
 	    <artifactId>cvrg-dataStorage</artifactId>
 	    <version>1.0-SNAPSHOT</version>
+	    <scope>provided</scope>
 	</dependency>
 	<dependency>
 	    <groupId>com.liferay.portal</groupId>
 	    <artifactId>portal-service</artifactId>
 	    <version>6.1.1</version>
+	    <scope>provided</scope>
 	</dependency>
 	<dependency>
 		<groupId>com.liferay.faces</groupId>
 		<artifactId>liferay-faces-portal</artifactId>
 		<version>3.1.0-ga1</version>
+		<scope>provided</scope>
 	</dependency>
 	<dependency>
 		<groupId>javax.portlet</groupId>
 		<artifactId>portlet-api</artifactId>
 		<version>2.0</version>
+		<scope>provided</scope>
 	</dependency>
 	<dependency>
 		<groupId>org.json</groupId>
