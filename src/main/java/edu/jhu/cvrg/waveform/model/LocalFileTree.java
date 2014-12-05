@@ -92,25 +92,15 @@ public class LocalFileTree implements Serializable{
 	private void buildTree(Connection con) {
 		
 		try {
-			Folder rootFolder = null;
-			List<Folder> rootFolders = DLAppLocalServiceUtil.getFolders(groupId, 0L);
-			
-			for (Folder folder : rootFolders) {
-				if(WAVEFORM_ROOT_FOLDER.equals(folder.getName())){
-					rootFolder = folder;
-					break;
-				}
-			}
+			 
+			 Folder rootFolder = getRootFolder();
 			
 			if(rootFolder != null){
-				
-				
-				rootFolder = _addFolder(rootFolder, USER_ROOT_FOLDER);
 				
 				treeRoot = new FileTreeNode(rootFolder, null);
 				treeRoot.setExpanded(true);
 				
-				List<FileInfoDTO> files = con.getFileListByUser(userId);
+				List<FileInfoDTO> files = con.getAllFilesByUser(userId);
 				
 				this.getFolderContent(this.extractFileIdList(files), rootFolder, treeRoot);
 			}else{
@@ -124,6 +114,23 @@ public class LocalFileTree implements Serializable{
 		} catch (DataStorageException e) {
 			getLog().error("Erro on tree loading. "+ e.getMessage());
 		}
+	}
+
+
+	private Folder getRootFolder() throws PortalException, SystemException {
+		Folder rootFolder = null;
+		List<Folder> rootFolders = DLAppLocalServiceUtil.getFolders(groupId, 0L);
+		
+		for (Folder folder : rootFolders) {
+			if(WAVEFORM_ROOT_FOLDER.equals(folder.getName())){
+				rootFolder = folder;
+				break;
+			}
+		}
+		
+		rootFolder = _addFolder(rootFolder, USER_ROOT_FOLDER);
+		
+		return rootFolder;
 	}
 
 	private Map<Long, FileInfoDTO> extractFileIdList(List<FileInfoDTO> files){
@@ -143,7 +150,16 @@ public class LocalFileTree implements Serializable{
 			if(USER_ROOT_FOLDER.equals(folder.getName())){
 				folderNode = node;
 			}else{
-				folderNode = new FileTreeNode(folder, node);
+				for (TreeNode n : node.getChildren()) {
+					FileTreeNode tn = (FileTreeNode) n;
+					if(tn.getContent() instanceof Folder && folder.getName().equals(((Folder)tn.getContent()).getName())){
+						folderNode = (FileTreeNode)n;
+						break;
+					}
+				}
+				if(folderNode == null){
+					folderNode = new FileTreeNode(folder, node);
+				}
 			}
 			
 			List<Folder> subFolders = DLAppLocalServiceUtil.getFolders(groupId, folder.getFolderId());
@@ -165,20 +181,31 @@ public class LocalFileTree implements Serializable{
 				if(nodeList.size() == 1){
 					FileEntry file = nodeList.get(0);
 					FileInfoDTO fileDTO = map.get(file.getFileEntryId());
-					if(fileDTO != null){
+					boolean skip = false;
+					for (TreeNode n : folderNode.getParent().getChildren()) {
+						FileTreeNode tn = (FileTreeNode) n;
+						if(tn.getContent() instanceof FileEntry && file.getTitle().equals(((FileEntry)tn.getContent()).getTitle())){
+							skip = true;
+							break;
+						}
+					}
+					if(!skip){
 						new FileTreeNode(file, folderNode.getParent(), fileDTO, hideExtension);
-					}else{
-						new FileTreeNode(file, folderNode.getParent(), null, hideExtension);
 					}
 					folderNode.getParent().getChildren().remove(folderNode);
 				}else{
 					for (FileEntry file : nodeList) {
 						FileInfoDTO fileDTO = map.get(file.getFileEntryId());
-						if(fileDTO != null){
+						boolean skip = false;
+						for (TreeNode n : folderNode.getChildren()) {
+							if(file.getTitle().equals(((FileEntry)n.getData()).getTitle())){
+								skip = true;
+								break;
+							}
+						}
+						if(!skip){
 							new FileTreeNode(file, folderNode, fileDTO, hideExtension);
-						}else{
-							new FileTreeNode(file, folderNode, null, hideExtension);
-						}	
+						}
 					}
 				}
 			}
@@ -186,6 +213,25 @@ public class LocalFileTree implements Serializable{
 			getLog().error("Erro on tree loading. "+ e.getMessage());
 		} catch (SystemException e) {
 			getLog().error("Erro on tree loading. "+ e.getMessage());
+		}
+	}
+	
+	public void refresh(){
+		
+		if(treeRoot != null){
+			try {
+				Connection con = ConnectionFactory.createConnection();
+				List<FileInfoDTO> files = con.getAllFilesByUser(userId);
+				
+				this.getFolderContent(this.extractFileIdList(files), getRootFolder(), treeRoot);
+				
+			} catch (PortalException e) {
+				e.printStackTrace();
+			} catch (SystemException e) {
+				e.printStackTrace();
+			} catch (DataStorageException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -203,6 +249,10 @@ public class LocalFileTree implements Serializable{
 			return ((FileEntry) node.getContent()).getFileEntryId();
 		}
 		
+	}
+	
+	public FileTreeNode addNode(FileEntry file, FileTreeNode parent, FileInfoDTO fileDTO){
+		return new FileTreeNode(file, parent, fileDTO, hideExtension);
 	}
 
 	public void addFolder(ActionEvent event) {
