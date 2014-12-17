@@ -18,7 +18,6 @@ limitations under the License.
 * @author Chris Jurado
 * 
 */
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.faces.application.FacesMessage;
@@ -36,6 +35,8 @@ import com.liferay.portal.model.User;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
+
+import edu.jhu.cvrg.filestore.enums.EnumFileStoreType;
 
 public class ResourceUtility {
 	
@@ -302,22 +303,6 @@ public class ResourceUtility {
     	FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, title, sb.toString()));
 	}  
 
-	private static final List<String[]> patterns = new ArrayList<String[]>();
-	static{
-		patterns.add(new String[]{"[\\[&@}:,=>/<{%|+#?\"\'\\;*~\\]]", "_"});
-		patterns.add(new String[]{"[\n\r]", ""});
-	}
-	
-	public static String convertToLiferayDocName(final String name) {
-		String str = name;
-		
-		for (String[] strings : patterns) {
-			str = str.replaceAll(strings[0], strings[1]);
-		}
-		
-		return str;
-	}
-	
 	public static String getBioportalAPIServerURL(){
 		String activeServer = getValue("bioportal.active.server");
 		
@@ -343,5 +328,16 @@ public class ResourceUtility {
 			activeServer = "remote";
 		}
 		return  getValue("bioportal."+activeServer+".apikey");
+	}
+	
+	public static EnumFileStoreType getFileStorageType(){
+		
+		String fileStoreType = getValue("file.storage");
+		
+		if(fileStoreType.equals("liferay61")){
+			return EnumFileStoreType.LIFERAY_61;
+		}
+
+		return EnumFileStoreType.LIFERAY_61;//default
 	}
 }

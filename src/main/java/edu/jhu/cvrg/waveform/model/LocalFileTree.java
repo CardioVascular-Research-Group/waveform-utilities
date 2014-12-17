@@ -30,337 +30,299 @@ import javax.faces.event.ActionEvent;
 import org.apache.log4j.Logger;
 import org.primefaces.model.TreeNode;
 
-import com.liferay.faces.portal.context.LiferayFacesContext;
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.repository.model.Folder;
-import com.liferay.portal.service.ServiceContext;
-import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 
 import edu.jhu.cvrg.data.dto.FileInfoDTO;
-import edu.jhu.cvrg.data.factory.Connection;
 import edu.jhu.cvrg.data.factory.ConnectionFactory;
 import edu.jhu.cvrg.data.util.DataStorageException;
+import edu.jhu.cvrg.filestore.enums.EnumFileStoreType;
+import edu.jhu.cvrg.filestore.filetree.FileNode;
+import edu.jhu.cvrg.filestore.filetree.FileTree;
+import edu.jhu.cvrg.filestore.filetree.FileTreeFactory;
+import edu.jhu.cvrg.filestore.util.FileStoreConstants;
 import edu.jhu.cvrg.waveform.utility.ResourceUtility;
 
 public class LocalFileTree implements Serializable{
 
 	private static final long serialVersionUID = 4904469355710631253L;
 
-	private static final String WAVEFORM_ROOT_FOLDER = "waveform";
-	
-	private String USER_ROOT_FOLDER;
-	
 	private FileTreeNode treeRoot;
 	private FileTreeNode selectedNode;
 	private TreeNode[] selectedNodes;
 	private String newFolderName = "";
+	private FileTree sourceFileTree;
+	private Long userId = ResourceUtility.getCurrentUserId();
+	private Long groupId = ResourceUtility.getCurrentGroupId();
+	private String[] args;
 	
-	private Long userId;
-	private Long groupId;
+//	private String extentionFilter;
 	
-	private String extentionFilter;
-	
-	private boolean hideExtension = false;
+//	private boolean hideExtension = false;
 	
 	public LocalFileTree (Long user){
 		initialize(user);
 	}
 	
 	
-	public LocalFileTree (Long user, String extentionFilter){
-		this.extentionFilter = extentionFilter;
-		this.hideExtension = (extentionFilter != null);
-		initialize(user);
-	}
+//	public LocalFileTree (Long user, String extentionFilter){
+//		this.extentionFilter = extentionFilter;
+//		this.hideExtension = (extentionFilter != null);
+//		initialize(user);
+//	}
 	
 	public void initialize(Long userId) {
 		this.userId = userId;
 		this.groupId = ResourceUtility.getCurrentGroupId();
-		this.USER_ROOT_FOLDER = String.valueOf(userId);
+		EnumFileStoreType type = getFileStoreType();
+		sourceFileTree = FileTreeFactory.getFileTree(type, args);
+		FileNode sourceRoot = sourceFileTree.getRoot();
 		
-		try {
-			Connection con = ConnectionFactory.createConnection();
-			buildTree(con);
-		} catch (DataStorageException e) {
-			getLog().error("Erro on tree loading. "+ e.getMessage());
+		if(treeRoot == null){
+			treeRoot = new FileTreeNode(FileTreeNode.FOLDER_TYPE, "My Files", null, sourceRoot.getUuid());
+			treeRoot.setExpanded(true);
 		}
 		
+		Map<Long, FileInfoDTO> fileInfoReferenceMap = this.getFileInfoReferenceMap();
+		
+		copyTree(treeRoot, sourceRoot, fileInfoReferenceMap);
 	}
 
-	private void buildTree(Connection con) {
-		
-		try {
-			 
-			 Folder rootFolder = getRootFolder();
-			
-			if(rootFolder != null){
-				
-				treeRoot = new FileTreeNode(rootFolder, null);
-				treeRoot.setExpanded(true);
-				
-				List<FileInfoDTO> files = con.getAllFilesByUser(userId);
-				
-				this.getFolderContent(this.extractFileIdList(files), rootFolder, treeRoot);
-			}else{
-				getLog().error(WAVEFORM_ROOT_FOLDER + " folder does not exist");
-			}
-			
-		} catch (PortalException e) {
-			getLog().error("Erro on tree loading. "+ e.getMessage());
-		} catch (SystemException e) {
-			getLog().error("Erro on tree loading. "+ e.getMessage());
-		} catch (DataStorageException e) {
-			getLog().error("Erro on tree loading. "+ e.getMessage());
-		}
-	}
+//	private void buildTree(Connection con) {
+//		
+//		try {
+//			 
+//			 Folder rootFolder = getRootFolder();
+//			
+//			if(rootFolder != null){
+//				
+//				treeRoot = new FileTreeNode(rootFolder, null);
+//				treeRoot.setExpanded(true);
+//				
+//				List<FileInfoDTO> files = con.getAllFilesByUser(userId);
+//				
+//				this.getFolderContent(this.extractFileIdList(files), rootFolder, treeRoot);
+//			}else{
+//				getLog().error(WAVEFORM_ROOT_FOLDER + " folder does not exist");
+//			}
+//			
+//		} catch (PortalException e) {
+//			getLog().error("Erro on tree loading. "+ e.getMessage());
+//		} catch (SystemException e) {
+//			getLog().error("Erro on tree loading. "+ e.getMessage());
+//		} catch (DataStorageException e) {
+//			getLog().error("Erro on tree loading. "+ e.getMessage());
+//		}
+//	}
 
 
-	private Folder getRootFolder() throws PortalException, SystemException {
-		Folder rootFolder = null;
-		List<Folder> rootFolders = DLAppLocalServiceUtil.getFolders(groupId, 0L);
-		
-		for (Folder folder : rootFolders) {
-			if(WAVEFORM_ROOT_FOLDER.equals(folder.getName())){
-				rootFolder = folder;
-				break;
-			}
-		}
-		
-		rootFolder = _addFolder(rootFolder, USER_ROOT_FOLDER);
-		
-		return rootFolder;
-	}
+//	private Folder getRootFolder() throws PortalException, SystemException {
+//		Folder rootFolder = null;
+//		List<Folder> rootFolders = DLAppLocalServiceUtil.getFolders(groupId, 0L);
+//		
+//		for (Folder folder : rootFolders) {
+//			if(WAVEFORM_ROOT_FOLDER.equals(folder.getName())){
+//				rootFolder = folder;
+//				break;
+//			}
+//		}
+//		
+//		rootFolder = _addFolder(rootFolder, USER_ROOT_FOLDER);
+//		
+//		return rootFolder;
+//	}
 
-	private Map<Long, FileInfoDTO> extractFileIdList(List<FileInfoDTO> files){
+	private Map<Long, FileInfoDTO> getFileInfoReferenceMap(){
+		
 		Map<Long, FileInfoDTO> fileMap = new HashMap<Long, FileInfoDTO>();
-		if(files!= null){
-			for (FileInfoDTO fileInfoDTO : files) {
-				fileMap.put(fileInfoDTO.getFileEntryId(), fileInfoDTO);
+		
+		try {
+			List<FileInfoDTO> files = ConnectionFactory.createConnection().getAllFilesByUser(userId);
+			if(files!= null){
+				for (FileInfoDTO fileInfoDTO : files) {
+					fileMap.put(fileInfoDTO.getFileEntryId(), fileInfoDTO);
+				}
 			}
+		} catch (DataStorageException e) {
+			e.printStackTrace();
 		}
+		
 		return fileMap;
 	} 
 	
 	
-	private void getFolderContent(Map<Long, FileInfoDTO> map, Folder folder, FileTreeNode node){
-		try {
-			FileTreeNode folderNode = null;
-			if(USER_ROOT_FOLDER.equals(folder.getName())){
-				folderNode = node;
-			}else{
-				for (TreeNode n : node.getChildren()) {
-					FileTreeNode tn = (FileTreeNode) n;
-					if(tn.getContent() instanceof Folder && folder.getName().equals(((Folder)tn.getContent()).getName())){
-						folderNode = (FileTreeNode)n;
-						break;
-					}
-				}
-				if(folderNode == null){
-					folderNode = new FileTreeNode(folder, node);
-				}
-			}
-			
-			List<Folder> subFolders = DLAppLocalServiceUtil.getFolders(groupId, folder.getFolderId());
-			if(subFolders != null){
-				for (Folder folder2 : subFolders) {
-					getFolderContent(map, folder2, folderNode);
-				}						
-			}
-			
-			List<FileEntry> subFiles = DLAppLocalServiceUtil.getFileEntries(groupId, folder.getFolderId());
-			if(subFiles != null && subFiles.size() > 0){
-				List<FileEntry> nodeList = new ArrayList<FileEntry>();
-				for (FileEntry file : subFiles) {
-					if(extentionFilter == null || extentionFilter.equalsIgnoreCase(file.getExtension())){
-						nodeList.add(file);
-					}
-				}
-				
-				if(nodeList.size() == 1){
-					FileEntry file = nodeList.get(0);
-					FileInfoDTO fileDTO = map.get(file.getFileEntryId());
-					boolean skip = false;
-					for (TreeNode n : folderNode.getParent().getChildren()) {
-						FileTreeNode tn = (FileTreeNode) n;
-						if(tn.getContent() instanceof FileEntry && file.getTitle().equals(((FileEntry)tn.getContent()).getTitle())){
-							skip = true;
-							break;
-						}
-					}
-					if(!skip){
-						new FileTreeNode(file, folderNode.getParent(), fileDTO, hideExtension);
-					}
-					folderNode.getParent().getChildren().remove(folderNode);
-				}else{
-					for (FileEntry file : nodeList) {
-						FileInfoDTO fileDTO = map.get(file.getFileEntryId());
-						boolean skip = false;
-						for (TreeNode n : folderNode.getChildren()) {
-							if(file.getTitle().equals(((FileEntry)n.getData()).getTitle())){
-								skip = true;
-								break;
-							}
-						}
-						if(!skip){
-							new FileTreeNode(file, folderNode, fileDTO, hideExtension);
-						}
-					}
-				}
-			}
-		} catch (PortalException e) {
-			getLog().error("Erro on tree loading. "+ e.getMessage());
-		} catch (SystemException e) {
-			getLog().error("Erro on tree loading. "+ e.getMessage());
-		}
-	}
+//	private void getFolderContent(Map<Long, FileInfoDTO> map, Folder folder, FileTreeNode node){
+//		try {
+//			FileTreeNode folderNode = null;
+//			if(USER_ROOT_FOLDER.equals(folder.getName())){
+//				folderNode = node;
+//			}else{
+//				for (TreeNode n : node.getChildren()) {
+//					FileTreeNode tn = (FileTreeNode) n;
+//					if(tn.getContent() instanceof Folder && folder.getName().equals(((Folder)tn.getContent()).getName())){
+//						folderNode = (FileTreeNode)n;
+//						break;
+//					}
+//				}
+//				if(folderNode == null){
+//					folderNode = new FileTreeNode(folder, node);
+//				}
+//			}
+//			
+//			List<Folder> subFolders = DLAppLocalServiceUtil.getFolders(groupId, folder.getFolderId());
+//			if(subFolders != null){
+//				for (Folder folder2 : subFolders) {
+//					getFolderContent(map, folder2, folderNode);
+//				}						
+//			}
+//			
+//			List<FileEntry> subFiles = DLAppLocalServiceUtil.getFileEntries(groupId, folder.getFolderId());
+//			if(subFiles != null && subFiles.size() > 0){
+//				List<FileEntry> nodeList = new ArrayList<FileEntry>();
+//				for (FileEntry file : subFiles) {
+//					if(extentionFilter == null || extentionFilter.equalsIgnoreCase(file.getExtension())){
+//						nodeList.add(file);
+//					}
+//				}
+//				
+//				if(nodeList.size() == 1){
+//					FileEntry file = nodeList.get(0);
+//					FileInfoDTO fileDTO = map.get(file.getFileEntryId());
+//					boolean skip = false;
+//					for (TreeNode n : folderNode.getParent().getChildren()) {
+//						FileTreeNode tn = (FileTreeNode) n;
+//						if(tn.getContent() instanceof FileEntry && file.getTitle().equals(((FileEntry)tn.getContent()).getTitle())){
+//							skip = true;
+//							break;
+//						}
+//					}
+//					if(!skip){
+//						new FileTreeNode(file, folderNode.getParent(), fileDTO, hideExtension);
+//					}
+//					folderNode.getParent().getChildren().remove(folderNode);
+//				}else{
+//					for (FileEntry file : nodeList) {
+//						FileInfoDTO fileDTO = map.get(file.getFileEntryId());
+//						boolean skip = false;
+//						for (TreeNode n : folderNode.getChildren()) {
+//							if(file.getTitle().equals(((FileEntry)n.getData()).getTitle())){
+//								skip = true;
+//								break;
+//							}
+//						}
+//						if(!skip){
+//							new FileTreeNode(file, folderNode, fileDTO, hideExtension);
+//						}
+//					}
+//				}
+//			}
+//		} catch (PortalException e) {
+//			getLog().error("Erro on tree loading. "+ e.getMessage());
+//		} catch (SystemException e) {
+//			getLog().error("Erro on tree loading. "+ e.getMessage());
+//		}
+//	}
 	
-	public void refresh(){
-		
-		if(treeRoot != null){
-			try {
-				Connection con = ConnectionFactory.createConnection();
-				List<FileInfoDTO> files = con.getAllFilesByUser(userId);
-				
-				this.getFolderContent(this.extractFileIdList(files), getRootFolder(), treeRoot);
-				
-			} catch (PortalException e) {
-				e.printStackTrace();
-			} catch (SystemException e) {
-				e.printStackTrace();
-			} catch (DataStorageException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+//	public Long getSelectedNodeId() {
+//
+//		FileTreeNode node = this.getSelectedNode();
+//		
+//		if (node == null) {
+//			node = treeRoot;
+//		}
+//		
+//		if(node.getContent() instanceof Folder){
+//			return ((Folder) node.getContent()).getFolderId();
+//		}else{
+//			return ((FileEntry) node.getContent()).getFileEntryId();
+//		}
+//		
+//	}
 	
-	public Long getSelectedNodeId() {
-
-		FileTreeNode node = this.getSelectedNode();
-		
-		if (node == null) {
-			node = treeRoot;
-		}
-		
-		if(node.getContent() instanceof Folder){
-			return ((Folder) node.getContent()).getFolderId();
-		}else{
-			return ((FileEntry) node.getContent()).getFileEntryId();
-		}
-		
-	}
-	
-	public FileTreeNode addNode(FileEntry file, FileTreeNode parent, FileInfoDTO fileDTO){
-		return new FileTreeNode(file, parent, fileDTO, hideExtension);
-	}
+//	public FileTreeNode addNode(FileEntry file, FileTreeNode parent, FileInfoDTO fileDTO){
+//		return new FileTreeNode(file, parent, fileDTO, hideExtension);
+//	}
 
 	public void addFolder(ActionEvent event) {
-		
-		FileTreeNode selectedNode = this.getSelectedNode();
-		
-		if (selectedNode == null) {
-			selectedNode = treeRoot;
-		}
-
-		FileTreeNode parentNode = selectedNode;
-		
-		Folder parentFolder = null;
-		if(parentNode.getContent() instanceof Folder){
-			parentFolder = (Folder) parentNode.getContent();
-		}else{
-			parentFolder = (Folder) ((FileTreeNode)parentNode.getParent()).getContent();
-		}
-		
-		if (!newFolderName.equals("")) {
-		
-			Folder newFolder = _addFolder(parentFolder, newFolderName);
-			
-			FileTreeNode newNode = null;
-			
-			List<TreeNode> subNodes = parentNode.getChildren();
-			if(subNodes!=null){
-				for (TreeNode sub : subNodes) {
-					if(sub.getData().equals(newFolderName)){
-						newNode = (FileTreeNode) sub;
-						break;
-					}
-				}
-			}
-			
-			if(newNode == null){
-				newNode =  new FileTreeNode(newFolder, parentNode);
-			}
-			
-			selectedNode = newNode;
-		}
-		
-		
-	}
-
-	private Folder _addFolder(Folder parentFolder, String newFolderName) {
-		Folder newFolder = null;
-		
-		try {
-			
-			newFolderName = ResourceUtility.convertToLiferayDocName(newFolderName);
-			
-			List<Folder> subFolders = DLAppLocalServiceUtil.getFolders(parentFolder.getRepositoryId(), parentFolder.getFolderId());
-			
-			if(subFolders!=null){
-				for (Folder sub : subFolders) {
-					if(sub.getName().equals(newFolderName)){
-						newFolder = sub;
-						break;
-					}
-				}
-			}
-			
-			if(newFolder == null){
-				ServiceContext service = LiferayFacesContext.getInstance().getServiceContext();
-				newFolder = DLAppLocalServiceUtil.addFolder(userId, this.groupId, parentFolder.getFolderId(), newFolderName, "", service);
-			}
-			
-		} catch (PortalException e) {
-			getLog().error("Error on add folder. " + e.getMessage());
-		} catch (SystemException e) {
-			getLog().error("Error on add folder. " + e.getMessage());
-		}
-		return newFolder;
-	}
 	
-	public Folder getSelectFolder(){
-		
-		FileTreeNode selectedNode = this.getSelectedNode();
-		
-		if (selectedNode == null) {
-			selectedNode = treeRoot;
+		FileTreeNode parentNode = this.getSelectedNode();
+		if (parentNode == null) {
+			parentNode = treeRoot;
+		} 
+		if(parentNode.isDocument()){
+			//TODO: Some kind of error message to the user
+			return;
 		}
-		
-		if(FileTreeNode.FOLDER_TYPE.equals(selectedNode.getType())){
-			return (Folder) selectedNode.getContent();
-		}else{
-			return null;
+		if (newFolderName.equals("")) {
+			//TODO: Some kind of error message to the user
+			return;
 		}
+		sourceFileTree.addFolder(parentNode.getUuid(), newFolderName);
+		initialize(userId);
 	}
+
+//	private Folder _addFolder(Folder parentFolder, String newFolderName) {
+//		Folder newFolder = null;
+//		
+//		try {
+//			
+//			newFolderName = ResourceUtility.convertToLiferayDocName(newFolderName);
+//			
+//			List<Folder> subFolders = DLAppLocalServiceUtil.getFolders(parentFolder.getRepositoryId(), parentFolder.getFolderId());
+//			
+//			if(subFolders!=null){
+//				for (Folder sub : subFolders) {
+//					if(sub.getName().equals(newFolderName)){
+//						newFolder = sub;
+//						break;
+//					}
+//				}
+//			}
+//			
+//			if(newFolder == null){
+//				ServiceContext service = LiferayFacesContext.getInstance().getServiceContext();
+//				newFolder = DLAppLocalServiceUtil.addFolder(userId, this.groupId, parentFolder.getFolderId(), newFolderName, "", service);
+//			}
+//			
+//		} catch (PortalException e) {
+//			getLog().error("Error on add folder. " + e.getMessage());
+//		} catch (SystemException e) {
+//			getLog().error("Error on add folder. " + e.getMessage());
+//		}
+//		return newFolder;
+//	}
 	
-	public ArrayList<FileEntry> getSelectedFileEntries() {
-		
-		TreeNode[] tempNodes = selectedNodes;
-
-		if(tempNodes == null){
-			tempNodes = new TreeNode[]{selectedNode};
-		}
-		
-		ArrayList<FileEntry> fileEntries = new ArrayList<FileEntry>();
-
-		for (TreeNode selectedNode : tempNodes) {
-			if (selectedNode.isLeaf() && FileTreeNode.FILE_TYPE.equals(selectedNode.getType())) {
-				fileEntries.add((FileEntry)((FileTreeNode)selectedNode).getContent());
-			}
-		}
-		return fileEntries;
-	}
+//	public Folder getSelectFolder(){
+//		
+//		FileTreeNode selectedNode = this.getSelectedNode();
+//		
+//		if (selectedNode == null) {
+//			selectedNode = treeRoot;
+//		}
+//		
+//		if(FileTreeNode.FOLDER_TYPE.equals(selectedNode.getType())){
+//			return (Folder) selectedNode.getContent();
+//		}else{
+//			return null;
+//		}
+//	}
+	
+//	public ArrayList<FileEntry> getSelectedFileEntries() {
+//		
+//		TreeNode[] tempNodes = selectedNodes;
+//
+//		if(tempNodes == null){
+//			tempNodes = new TreeNode[]{selectedNode};
+//		}
+//		
+//		ArrayList<FileEntry> fileEntries = new ArrayList<FileEntry>();
+//
+//		for (TreeNode selectedNode : tempNodes) {
+//			if (selectedNode.isLeaf() && FileTreeNode.FILE_TYPE.equals(selectedNode.getType())) {
+//				fileEntries.add((FileEntry)((FileTreeNode)selectedNode).getContent());
+//			}
+//		}
+//		return fileEntries;
+//	}
 	
 	public ArrayList<FileTreeNode> getSelectedFileNodes() {
 		
@@ -526,8 +488,189 @@ public class LocalFileTree implements Serializable{
 	}
 	
 	private Logger getLog(){
-		return Logger.getLogger(this.getClass());
+		return Logger.getLogger(LocalFileTree.class);
 	}
 	
+	private void copyTree(FileTreeNode newParent, FileNode sourceParent, Map<Long, FileInfoDTO> fileInfoReferenceMap){
+		
+		String type = FileTreeNode.FOLDER_TYPE;
+		if(sourceParent.getChildren() == null){
+			return;
+		}
+		
+		List<FileNode> nodes = sourceParent.getChildren();
+		
+		if(nodes.size() == 1 && !nodes.get(0).isFolder()){
+			
+			FileNode file = nodes.get(0);
+			FileInfoDTO fileDTO = fileInfoReferenceMap.get(file.getUuid());
+			boolean skip = false;
+			for (TreeNode n : newParent.getParent().getChildren()) {
+				FileTreeNode tn = (FileTreeNode) n;
+				if(file.getName().equals(((FileTreeNode)tn).getFileNode().getName())){
+					skip = true;
+					break;
+				}
+			}
+			if(!skip){
+				if(fileDTO != null){
+					file.setDocumentRecordId(fileDTO.getDocumentRecordId());
+					file.setAnalysisJobId(fileDTO.getAnalysisJobId());
+					new FileTreeNode(file,  newParent.getParent());		
+				}
+			}
+			newParent.getParent().getChildren().remove(newParent);
+			
+		}else{
+			for(FileNode sourceNode : sourceParent.getChildren()){
+				FileTreeNode newChildNode = null;
+				
+				if(newParent!=null){
+					for (TreeNode folderNode : newParent.getChildren()) {
+						if(((FileTreeNode)folderNode).getFileNode().getName().equals(sourceNode.getName())){
+							newChildNode = (FileTreeNode) folderNode;
+							break;
+						}
+					}
+				}
+				
+				if(newChildNode == null){
+					if(fileInfoReferenceMap != null && !sourceNode.isFolder()){
+						FileInfoDTO fileInfo = fileInfoReferenceMap.get(Long.valueOf(sourceNode.getUuid()));
+						if(fileInfo != null){
+							sourceNode.setDocumentRecordId(fileInfo.getDocumentRecordId());
+							sourceNode.setAnalysisJobId(fileInfo.getAnalysisJobId());
+							newChildNode = new FileTreeNode(sourceNode, newParent);		
+						}
+					}else{
+						if(!sourceNode.isFolder()){
+							type = FileTreeNode.FILE_ERROR_TYPE;
+						}
+						if(newChildNode == null){
+							newChildNode = new FileTreeNode(type, sourceNode, newParent);	
+						}
+					}
+				}
+				copyTree(newChildNode, sourceNode, fileInfoReferenceMap);
+			}
+		}
+		
+	}
 
+	public void deleteFolder(ActionEvent event){
+
+		FileTreeNode deleteNode = this.getSelectedNode();
+		if(deleteNode == null){
+			return;
+		} 
+		if(deleteNode.getUuid() == 0L){
+			return;
+		}
+		
+		sourceFileTree.deleteNode(deleteNode.getUuid());
+		deleteNode(deleteNode);
+	}
+	
+	private void deleteNode(TreeNode node){
+		if(node.getChildren() != null){
+			for(TreeNode childNode : node.getChildren()){
+				deleteNode(childNode);
+			}
+		}
+		TreeNode parentNode = node.getParent();
+		if(parentNode != null){
+			List<TreeNode> siblingNodes = parentNode.getChildren();
+			siblingNodes.remove(node);
+		}
+	}
+	
+	public boolean fileExistsInFolder(String fileName, long folderUuid){
+		
+		TreeNode targetNode = findNodeByUuid(folderUuid, treeRoot);
+		if(targetNode == null){
+			return false;
+		}
+		for(TreeNode childNode : targetNode.getChildren()){
+			if(childNode.getData().equals(fileName)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public String findNameByUuid(long folderUuid){
+		return (String)findNodeByUuid(folderUuid, treeRoot).getData();	
+	}
+	
+	private TreeNode findNodeByUuid(long folderUuid, TreeNode startNode){
+
+		TreeNode foundNode = null;
+		
+		if(((FileTreeNode)startNode).getUuid() == folderUuid){
+			return startNode;
+		}
+
+		for(TreeNode childNode : startNode.getChildren()){
+			if(((FileTreeNode)childNode).getUuid() == folderUuid){
+				return childNode;
+			}
+
+			if(childNode.getChildren() != null){
+				foundNode = findNodeByUuid(folderUuid, childNode);
+				if(foundNode != null){
+					break;
+				}
+			}
+		}
+		return foundNode;
+	}
+	
+	public EnumFileStoreType getFileStoreType(){
+		
+		String fileStoreType = "";
+		try{
+			fileStoreType = PropsUtil.get("file.storage");
+		}
+		catch(Exception e){
+			this.getLog().error("Unable to find file storage configuration.  Defaulting to Liferay 6.1");
+		}
+		if(fileStoreType.equals("liferay61")){
+			this.args = new String[]{String.valueOf(groupId), String.valueOf(userId), String.valueOf(ResourceUtility.getCurrentCompanyId()), FileStoreConstants.WAVEFORM_ROOT_FOLDER_NAME, String.valueOf(userId)};
+			return EnumFileStoreType.LIFERAY_61;
+		}
+
+		return EnumFileStoreType.LIFERAY_61;//default
+	}
+	
+	public String getFolderPath(long folderUuid) throws Exception {
+		
+		StringBuilder path = new StringBuilder();
+		
+		TreeNode targetNode = findNodeByUuid(folderUuid, treeRoot);
+		
+		extractFolderHierachic(targetNode, path);
+		
+		return path.toString();
+	}
+	
+	private void extractFolderHierachic(TreeNode node, StringBuilder treePath) throws Exception {
+		try {
+			if(node != null){
+				if(node.getParent() != null){
+					extractFolderHierachic(node.getParent(), treePath);
+				}
+				treePath.append('|').append(node.getData());
+			}
+		} catch (Exception e) {
+			this.getLog().error("Problems with the liferay folder structure");
+			throw e;
+		}
+	}
+	
+	public long getSelectedFolderUuid(){
+		return this.selectedNode.getUuid();
+	}
+	public void setDefaultSelected(){
+		this.selectedNode = this.treeRoot;
+	}
 }

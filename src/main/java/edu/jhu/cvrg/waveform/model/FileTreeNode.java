@@ -7,6 +7,7 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 
 import edu.jhu.cvrg.data.dto.FileInfoDTO;
+import edu.jhu.cvrg.filestore.filetree.FileNode;
 
 public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 
@@ -14,42 +15,68 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 	protected static final String FILE_ANALYSIS_TYPE = "analysis";
 	protected static final String FILE_TYPE = "document";
 	protected static final String FOLDER_TYPE = "default";
-
 	private static final long serialVersionUID = -8272995370554100396L;
+	private long uuid;
+	private FileNode fileNode;
 	
-	private Object content;
-	private Long documentRecordId;
-	private Long analysisJobId;
+	public FileNode getFileNode(){
+		return this.fileNode;
+	}
+
+	public FileTreeNode(FileNode sourceNode, TreeNode parentNode){
+		super(getNodeName(sourceNode.getName(), true), parentNode);
+		
+		this.fileNode = sourceNode;
+
+		if(fileNode.getAnalysisJobId() != null){
+			this.setType(FILE_ANALYSIS_TYPE);
+		}else if(fileNode.getDocumentRecordId() != null){
+				this.setType(FILE_TYPE);
+		}else{
+			this.setType(FILE_ERROR_TYPE);
+		}
+		
+		this.uuid = sourceNode.getUuid();
+		
+	}
+	public FileTreeNode(String type, FileNode sourceNode, TreeNode parentNode){
+		super(type, sourceNode.getName(), parentNode);
+		this.uuid = sourceNode.getUuid();
+		this.fileNode = sourceNode;
+	}
+	public FileTreeNode(String type, String fileNodeName, TreeNode parentNode, long uuid){
+		super(type, fileNodeName, parentNode);
+		this.uuid = uuid;
+	}
 	
 	public FileTreeNode(String type, Folder folder, TreeNode parentNode) {
 		super(type, folder.getName(), parentNode);
-		this.setContent(folder);
+		this.fileNode = new FileNode(null, folder.getName(), 0L);
 	}
 	
 	public FileTreeNode(String type, FileEntry folder, TreeNode parentNode) {
 		super(type, folder.getTitle(), parentNode);
-		this.setContent(folder);
+		this.fileNode = new FileNode(null, folder.getTitle(), 0L);
 	}
 	
 	public FileTreeNode(Folder folder, TreeNode parentNode) {
 		super(folder.getName(), parentNode);
 		this.setType(FOLDER_TYPE);
-		this.setContent(folder);
+		this.fileNode = new FileNode(null, folder.getName(), 0L);
 	}
 	
-	public FileTreeNode(FileEntry fileEntry, TreeNode parentNode, FileInfoDTO dto, boolean hideExtension) {
-		super(getNodeName(fileEntry, hideExtension), parentNode);
-		
-		this.setParent(parentNode);	
-		
-		this.setContent(fileEntry);
-		if(dto != null){
-			this.documentRecordId = dto.getDocumentRecordId();
-			this.analysisJobId = dto.getAnalysisJobId();
+	public FileTreeNode(FileEntry fileEntry, TreeNode parentNode, FileInfoDTO fileDTO, boolean hideExtension) {
+		super(getNodeName(fileEntry.getTitle(), hideExtension), parentNode);
+
+		if(fileDTO != null){
+			this.fileNode = new FileNode(((FileTreeNode)parentNode).getFileNode(), fileEntry.getTitle(), 0L);
+
+			this.fileNode.setAnalysisJobId(fileDTO.getAnalysisJobId());
+			this.fileNode.setDocumentRecordId(fileDTO.getDocumentRecordId());
 			
-			if(analysisJobId != null){
+			if(fileNode.getAnalysisJobId() != 0L){
 				this.setType(FILE_ANALYSIS_TYPE);
-			}else if(documentRecordId != null){
+			}else if(fileNode.getDocumentRecordId() != 0L){
 					this.setType(FILE_TYPE);
 			}else{
 				this.setType(FILE_ERROR_TYPE);
@@ -59,11 +86,11 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 		}
 	}
 
-	private static String getNodeName(FileEntry fileEntry, boolean hideExtension) {
+	private static String getNodeName(String filename, boolean hideExtension) {
 		if(hideExtension){
-			return fileEntry.getTitle().substring(0, fileEntry.getTitle().lastIndexOf('.'));
+			return filename.substring(0, filename.lastIndexOf('.'));
 		}else{
-			return fileEntry.getTitle();
+			return filename;
 		}
 	}
 	
@@ -74,8 +101,7 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 		
 		return sb.toString();
 	}
-	
-	
+		
 	private void getPath(TreeNode node, StringBuilder path){
 		if(node != null){
 			if(node.getParent() !=null ){
@@ -86,30 +112,30 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 	}
 
 	public Object getContent() {
-		return content;
+		return this.fileNode.getContent();
 	}
-
-	public void setContent(Object content) {
-		this.content = content;
-	}
-
-	public Long getDocumentRecordId() {
-		return documentRecordId;
+	
+	public long getDocumentRecordId(){
+		return this.fileNode.getDocumentRecordId();
 	}
 
 	public Long getAnalysisJobId() {
-		return analysisJobId;
+		return this.fileNode.getAnalysisJobId();
+	}
+
+	public long getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(long uuid) {
+		this.uuid = uuid;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result
-				+ ((analysisJobId == null) ? 0 : analysisJobId.hashCode());
-		result = prime
-				* result
-				+ ((documentRecordId == null) ? 0 : documentRecordId.hashCode());
+		result = prime * result + (int) (uuid ^ (uuid >>> 32));
 		return result;
 	}
 
@@ -122,17 +148,14 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 		if (getClass() != obj.getClass())
 			return false;
 		FileTreeNode other = (FileTreeNode) obj;
-		if (analysisJobId == null) {
-			if (other.analysisJobId != null)
-				return false;
-		} else if (!analysisJobId.equals(other.analysisJobId))
-			return false;
-		if (documentRecordId == null) {
-			if (other.documentRecordId != null)
-				return false;
-		} else if (!documentRecordId.equals(other.documentRecordId))
+		if (uuid != other.uuid)
 			return false;
 		return true;
-	}	
+	}
+	
+	public boolean isDocument(){
+		return FileTreeNode.FILE_TYPE.equals(this.getType());
+	}
+	
 	
 }

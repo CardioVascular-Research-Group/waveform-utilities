@@ -49,20 +49,20 @@ import org.apache.axis2.addressing.EndpointReference;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.repository.model.FileEntry;
-
+import edu.jhu.cvrg.filestore.model.FSFile;
 import edu.jhu.cvrg.waveform.callbacks.SvcAxisCallback;
 
 public class WebServiceUtility {
 	
 	private static final String CVRG_ONTOLOGY_PREFIX_ID = "http://www.cvrgrid.org/files/";
-
+	private static Logger log = Logger.getLogger(WebServiceUtility.class);
+	private static long waitUntil = 0L;
+	
 	private WebServiceUtility(){}
 
 	/** Generic function for calling web services on the same server (localhost) as the ECGWaveform web pages.
@@ -80,7 +80,7 @@ public class WebServiceUtility {
 			String serviceMethod, 
 			String serviceName, 
 			SvcAxisCallback callback,
-			Map<String, FileEntry> filesMap){
+			Map<String, FSFile> filesMap){
 		OMElement result = null;
 		
 		String analysisServiceURL = ServiceProperties.getInstance().getProperty(ServiceProperties.MAIN_SERVICE_URL);	
@@ -152,38 +152,28 @@ public class WebServiceUtility {
 										   String serviceName, 
 										   String serviceURL, 
 										   SvcAxisCallback callback, 
-										   Map<String, FileEntry> filesMap){
+										   Map<String, FSFile> filesMap){
 
 		return callWebServiceComplexParam(parameterMap, serviceMethod, serviceName, serviceURL, callback, filesMap);
 	}
 	
 	
-	private static void addFiles(Map<String, FileEntry> filesMap, OMElement omWebService, OMFactory omFactory, OMNamespace omNamespace) {
+	private static void addFiles(Map<String, FSFile> filesMap, OMElement omWebService, OMFactory omFactory, OMNamespace omNamespace) {
 		if(filesMap != null){
 			StringBuilder filesId = new StringBuilder();
 			for(String key : filesMap.keySet()){
-				try {
-					OMElement fileElement = omFactory.createOMElement("file_"+key, omNamespace);
-					FileEntry file  = filesMap.get(key);
-					
-					byte[] bytes = new byte[Long.valueOf(file.getSize()).intValue()];
-					file.getContentStream().read(bytes);
-					
-					DataHandler dh = new DataHandler(new ByteArrayDataSource(bytes));
-					
-					OMText textData = omFactory.createOMText(dh, true);
-					fileElement.addChild(textData);
 				
-					omWebService.addChild(fileElement);
-					filesId.append(file.getFileEntryId()).append(',');
-					
-				} catch (PortalException e) {
-					e.printStackTrace();
-				} catch (SystemException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				OMElement fileElement = omFactory.createOMElement("file_"+key, omNamespace);
+				FSFile file  = filesMap.get(key);
+				
+				DataHandler dh = new DataHandler(new ByteArrayDataSource(file.getFileDataAsBytes()));
+				
+				OMText textData = omFactory.createOMText(dh, true);
+				fileElement.addChild(textData);
+			
+				omWebService.addChild(fileElement);
+				filesId.append(file.getId()).append(',');
+				
 			}
 			addOMEChild("filesId", filesId.toString(), omWebService);
 		}
@@ -221,7 +211,7 @@ public class WebServiceUtility {
 													   String serviceName, 
 													   String serviceURL,
 													   SvcAxisCallback callback,
-													   Map<String, FileEntry> filesMap){
+													   Map<String, FSFile> filesMap){
 		System.out.println("waveform-utilities.WebServiceUtility.callWebServiceComplexParam()");
 
 		String serviceTarget = "";
@@ -393,42 +383,50 @@ public class WebServiceUtility {
 		
 		Map<String, String> ret = null;
 	    URL url;
+	    HttpURLConnection conn = null;
 	    try {
-			url = new URL(restURL);
-			
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setRequestMethod("GET");
-			conn.setRequestProperty("Accept", "application/json");
-			
-			BufferedReader in = new BufferedReader(new InputStreamReader((conn.getInputStream())));
-			
-			String jsonSrc = in.readLine();
-			in.close();
-			
-			JSONObject jsonObject = new JSONObject(jsonSrc);
-			ret = new HashMap<String, String>();
-			
-			for (int i = 0; i < key.length; i++) {
-				Object atr = jsonObject.get(key[i]);
-				String value = "";	
-				if(atr instanceof JSONArray){
-					JSONArray array = ((JSONArray) atr);
-					for (int j = 0; j < array.length(); j++) {
-						value +=array.getString(j);	
+	    	if(System.currentTimeMillis() > waitUntil){
+				url = new URL(restURL);
+				
+				conn = (HttpURLConnection) url.openConnection();
+				conn.setRequestMethod("GET");
+				conn.setRequestProperty("Accept", "application/json");
+				
+				BufferedReader in = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+				
+				String jsonSrc = in.readLine();
+				in.close();
+				
+				JSONObject jsonObject = new JSONObject(jsonSrc);
+				ret = new HashMap<String, String>();
+				
+				for (int i = 0; i < key.length; i++) {
+					Object atr = jsonObject.get(key[i]);
+					String value = "";	
+					if(atr instanceof JSONArray){
+						JSONArray array = ((JSONArray) atr);
+						for (int j = 0; j < array.length(); j++) {
+							value +=array.getString(j);	
+						}
+					}else {
+						value = atr.toString(); 
 					}
-				}else {
-					value = atr.toString(); 
+					if(value.isEmpty()){
+						value = "No " + key[i] + " found";
+					}
+					ret.put(key[i], value);
 				}
-				if(value.isEmpty()){
-					value = "No " + key[i] + " found";
-				}
-				ret.put(key[i], value);
-			}
+	    	}else{
+	    		log.warn("Waiting the bioportal server");
+	    	}
 		
 	    }catch(MalformedURLException mue){
 	    	mue.printStackTrace();
 	    } catch (IOException ioe) {
-			ioe.printStackTrace();
+	    	//wait for 1 minute
+	    	waitUntil = System.currentTimeMillis() + (1000 * 60);
+	    	
+			log.error(ioe.getMessage());
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
