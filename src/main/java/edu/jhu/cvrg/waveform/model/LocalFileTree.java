@@ -557,7 +557,7 @@ public class LocalFileTree implements Serializable{
 		
 	}
 
-	public void deleteFolder(ActionEvent event){
+	public void deleteSelectedNode(){
 
 		FileTreeNode deleteNode = this.getSelectedNode();
 		if(deleteNode == null){
@@ -569,33 +569,40 @@ public class LocalFileTree implements Serializable{
 		
 		sourceFileTree.deleteNode(deleteNode.getUuid());
 		deleteNode(deleteNode);
-	}
-	
-	private void deleteNode(TreeNode node){
-		if(node.getChildren() != null){
-			for(TreeNode childNode : node.getChildren()){
-				deleteNode(childNode);
-			}
-		}
-		TreeNode parentNode = node.getParent();
+		
+		TreeNode parentNode = deleteNode.getParent();
 		if(parentNode != null){
 			List<TreeNode> siblingNodes = parentNode.getChildren();
-			siblingNodes.remove(node);
+			siblingNodes.remove(deleteNode);
 		}
 	}
 	
-	public boolean fileExistsInFolder(String fileName, long folderUuid){
-		
-		TreeNode targetNode = findNodeByUuid(folderUuid, treeRoot);
-		if(targetNode == null){
-			return false;
-		}
-		for(TreeNode childNode : targetNode.getChildren()){
-			if(childNode.getData().equals(fileName)){
-				return true;
+	private TreeNode deleteNode(TreeNode node){
+		if(node.getChildren() != null){
+			List<TreeNode> toRemove = null;
+			for(TreeNode childNode : node.getChildren()){
+				if(!((FileTreeNode)childNode).isDocument()){
+					TreeNode n = deleteNode(childNode);
+					if(n!= null){
+						if(toRemove == null){
+							toRemove = new ArrayList<TreeNode>();
+						}
+						toRemove.add(n);
+					}
+				}
+			}
+			if(toRemove != null){
+				node.getChildren().removeAll(toRemove);
 			}
 		}
-		return false;
+		return node;
+	}
+	
+	public boolean fileExistsInFolder(String recordName){
+		
+		TreeNode targetNode = findNodeByName(recordName, treeRoot);
+		
+		return (targetNode != null);
 	}
 	
 	public String findNameByUuid(long folderUuid){
@@ -624,6 +631,30 @@ public class LocalFileTree implements Serializable{
 		}
 		return foundNode;
 	}
+	
+	private TreeNode findNodeByName(String name, TreeNode startNode){
+
+		TreeNode foundNode = null;
+		
+		if(startNode.getData().equals(name)){
+			return startNode;
+		}
+
+		for(TreeNode childNode : startNode.getChildren()){
+			if(childNode.getData().equals(name)){
+				return childNode;
+			}
+
+			if(childNode.getChildren() != null){
+				foundNode = findNodeByName(name, childNode);
+				if(foundNode != null){
+					break;
+				}
+			}
+		}
+		return foundNode;
+	}
+
 	
 	public EnumFileStoreType getFileStoreType(){
 		
