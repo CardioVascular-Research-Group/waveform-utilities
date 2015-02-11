@@ -6,6 +6,7 @@ public class Semaphore {
 
 	  private static Semaphore createFolderSemaphore = null;
 	  private static Semaphore createFileSemaphore = null;
+	  private static Semaphore createUploadSemaphore = null;
 	  
 	  public static Semaphore getCreateFolderSemaphore(){
 		  if(createFolderSemaphore == null){
@@ -19,7 +20,14 @@ public class Semaphore {
 			  createFileSemaphore = new Semaphore(1);
 		  }
 		  return createFileSemaphore;
-	  }	  
+	  }
+	  
+	  public static Semaphore getCreateUploadSemaphore(){
+		  if(createUploadSemaphore == null){
+			  createUploadSemaphore = new Semaphore(1);
+		  }
+		  return createUploadSemaphore;
+	  }	
 
 	  
 	  private Semaphore(int upperBound){

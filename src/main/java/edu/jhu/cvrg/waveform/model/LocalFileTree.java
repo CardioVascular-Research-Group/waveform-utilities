@@ -575,6 +575,7 @@ public class LocalFileTree implements Serializable{
 			List<TreeNode> siblingNodes = parentNode.getChildren();
 			siblingNodes.remove(deleteNode);
 		}
+		selectedNode = null;
 	}
 	
 	private TreeNode deleteNode(TreeNode node){
@@ -600,9 +601,9 @@ public class LocalFileTree implements Serializable{
 	
 	public boolean fileExistsInFolder(String recordName){
 		
-		TreeNode targetNode = findNodeByName(recordName, treeRoot);
+		FileNode node = sourceFileTree.getFileNodeByName(recordName);
 		
-		return (targetNode != null);
+		return (node != null);
 	}
 	
 	public String findNameByUuid(long folderUuid){
@@ -699,7 +700,11 @@ public class LocalFileTree implements Serializable{
 	}
 	
 	public long getSelectedFolderUuid(){
-		return this.selectedNode.getUuid();
+		if(this.getSelectedNode() != null){
+			return this.getSelectedNode().getUuid();
+		}else{
+			return this.getTreeRoot().getUuid();
+		}
 	}
 	public void setDefaultSelected(){
 		this.selectedNode = this.treeRoot;
