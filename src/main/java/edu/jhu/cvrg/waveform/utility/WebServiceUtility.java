@@ -212,7 +212,7 @@ public class WebServiceUtility {
 													   String serviceURL,
 													   SvcAxisCallback callback,
 													   Map<String, FSFile> filesMap){
-		System.out.println("waveform-utilities.WebServiceUtility.callWebServiceComplexParam()");
+		log.info("waveform-utilities.WebServiceUtility.callWebServiceComplexParam()");
 
 		String serviceTarget = "";
 		
@@ -241,7 +241,7 @@ public class WebServiceUtility {
 		OMElement result = null;
 		try {
 			if(callback == null){
-				System.out.println("Service/method, no callback:" + serviceName + "/" + serviceMethod);
+				log.info("Service/method, no callback:" + serviceName + "/" + serviceMethod);
 				//  Directly invoke an anonymous operation with an In-Out message exchange pattern.
 				result = sender.sendReceive(omWebService);
 				StringWriter writer = new StringWriter();
@@ -249,7 +249,7 @@ public class WebServiceUtility {
 				writer.flush();
 			}
 			else{
-				System.out.println("Service/method, WITH callback:" + serviceName + "/" + serviceMethod);
+				log.info("Service/method, WITH callback:" + serviceName + "/" + serviceMethod);
 				// Directly invoke an anonymous operation with an In-Out message exchange pattern without waiting for a response.
 				sender.sendReceiveNonBlocking(omWebService, callback);
 			}
@@ -266,7 +266,7 @@ public class WebServiceUtility {
 	
 	private static void extractParameter(Map<String, ?> map, OMFactory omFactory, OMNamespace omNamespace, OMElement omWebService){
 		for(String key : map.keySet()){
-			System.out.println(" ** WebServiceUtility.extractParameter key: " + key + " value:" + map.get(key));
+//			log.info(" ** extractParameter key: " + key + " value:" + map.get(key));
 			if(map.get(key) != null){
 				if(key.endsWith("List") | key.endsWith("list") | map.get(key) instanceof Map){
 					OMElement omList = omFactory.createOMElement(key, omNamespace);
