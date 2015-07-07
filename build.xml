@@ -97,7 +97,11 @@
 		</delete>
 
 		<copy todir="/opt/liferay/portlet-ext" file="target/${ant.project.name}-${project.version}.jar" />
-		        
+		<copy todir="${portlets}/analyze-portlet/docroot/WEB-INF/lib" file="target/${ant.project.name}-${project.version}.jar" />
+    	<copy todir="${portlets}/upload-portlet/docroot/WEB-INF/lib" file="target/${ant.project.name}-${project.version}.jar" />
+    	<copy todir="${portlets}/download-portlet/docroot/WEB-INF/lib" file="target/${ant.project.name}-${project.version}.jar" />
+    	<copy todir="${portlets}/visualize-portlet/docroot/WEB-INF/lib" file="target/${ant.project.name}-${project.version}.jar" />
+    	
     </target>
 
 </project>
