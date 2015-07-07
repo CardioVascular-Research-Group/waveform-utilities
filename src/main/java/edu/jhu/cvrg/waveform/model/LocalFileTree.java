@@ -47,10 +47,13 @@ public class LocalFileTree implements Serializable{
 	private static final long serialVersionUID = 4904469355710631253L;
 
 	private FileTreeNode treeRoot;
+	private FileTreeNode userNode;
+	private FileTreeNode eurekaNode;
 	private FileTreeNode selectedNode;
 	private TreeNode[] selectedNodes;
 	private String newFolderName = "";
 	private FileTree sourceFileTree;
+	private FileTree eurekaFileTree;
 	private Long userId = ResourceUtility.getCurrentUserId();
 	private Long groupId = ResourceUtility.getCurrentGroupId();
 	private String[] args;
@@ -74,17 +77,33 @@ public class LocalFileTree implements Serializable{
 		this.userId = userId;
 		this.groupId = ResourceUtility.getCurrentGroupId();
 		EnumFileStoreType type = getFileStoreType();
+		
 		sourceFileTree = FileTreeFactory.getFileTree(type, args);
 		FileNode sourceRoot = sourceFileTree.getRoot();
 		
+		eurekaFileTree = FileTreeFactory.getFileTree(EnumFileStoreType.VIRTUAL_DB, args);
+		FileNode eurekaRoot = eurekaFileTree.getRoot();
+		
 		if(treeRoot == null){
-			treeRoot = new FileTreeNode(FileTreeNode.FOLDER_TYPE, "My Files", null, sourceRoot.getUuid());
+			treeRoot = new FileTreeNode(FileTreeNode.FOLDER_TYPE, "root", null, -1);
 			treeRoot.setExpanded(true);
+			
+			userNode = new FileTreeNode(FileTreeNode.HOME_TYPE, "My Subjects", treeRoot, sourceRoot.getUuid());
+			
+			if(eurekaRoot != null){
+				eurekaNode = new FileTreeNode(FileTreeNode.EUREKA_TYPE, eurekaRoot.getName(), treeRoot, eurekaRoot.getUuid());
+			}
+
 		}
 		
-		Map<Long, FileInfoDTO> fileInfoReferenceMap = this.getFileInfoReferenceMap();
+		Map<Long, FileInfoDTO> fileInfoReferenceMap = this.getFileInfoReferenceMap(false);
+		copyTree(userNode, sourceRoot, fileInfoReferenceMap);
 		
-		copyTree(treeRoot, sourceRoot, fileInfoReferenceMap);
+		if(eurekaRoot != null){
+			Map<Long, FileInfoDTO> fileInfoVirtualReferenceMap = this.getFileInfoReferenceMap(true);
+			copyTree(eurekaNode, eurekaRoot, fileInfoVirtualReferenceMap);	
+		}
+		
 	}
 
 //	private void buildTree(Connection con) {
@@ -131,15 +150,25 @@ public class LocalFileTree implements Serializable{
 //		return rootFolder;
 //	}
 
-	private Map<Long, FileInfoDTO> getFileInfoReferenceMap(){
+	private Map<Long, FileInfoDTO> getFileInfoReferenceMap(boolean isVirtual){
 		
 		Map<Long, FileInfoDTO> fileMap = new HashMap<Long, FileInfoDTO>();
 		
 		try {
-			List<FileInfoDTO> files = ConnectionFactory.createConnection().getAllFilesByUser(userId);
+			List<FileInfoDTO> files = null;
+			if(isVirtual){
+				files = ConnectionFactory.createConnection().getAllFilesReferenceByUser(userId);
+			}else{
+				files = ConnectionFactory.createConnection().getAllFilesByUser(userId);
+			}
 			if(files!= null){
 				for (FileInfoDTO fileInfoDTO : files) {
-					fileMap.put(fileInfoDTO.getFileEntryId(), fileInfoDTO);
+					if(isVirtual){
+						fileMap.put(fileInfoDTO.getDocumentRecordId(), fileInfoDTO);
+					}else{
+						fileMap.put(fileInfoDTO.getFileEntryId(), fileInfoDTO);	
+					}
+					
 				}
 			}
 		} catch (DataStorageException e) {
@@ -246,18 +275,21 @@ public class LocalFileTree implements Serializable{
 	
 		FileTreeNode parentNode = this.getSelectedNode();
 		if (parentNode == null) {
-			parentNode = treeRoot;
-		} 
-		if(parentNode.isDocument()){
-			//TODO: Some kind of error message to the user
-			return;
+			parentNode = userNode;
 		}
-		if (newFolderName.equals("")) {
-			//TODO: Some kind of error message to the user
-			return;
+		
+		if(!parentNode.equals(this.getEurekaNode())){
+			if(parentNode.isDocument()){
+				//TODO: Some kind of error message to the user
+				return;
+			}
+			if (newFolderName.equals("")) {
+				//TODO: Some kind of error message to the user
+				return;
+			}
+			sourceFileTree.addFolder(parentNode.getUuid(), newFolderName);
+			initialize(userId);
 		}
-		sourceFileTree.addFolder(parentNode.getUuid(), newFolderName);
-		initialize(userId);
 	}
 
 //	private Folder _addFolder(Folder parentFolder, String newFolderName) {
@@ -343,7 +375,7 @@ public class LocalFileTree implements Serializable{
 
 	private void getFileEntries(List<TreeNode> tempNodes, ArrayList<FileTreeNode> fileEntries) {
 		for (TreeNode selectedNode : tempNodes) {
-			if (selectedNode.isLeaf() && FileTreeNode.FILE_TYPE.equals(selectedNode.getType())) {
+			if (isLeafAndFile(selectedNode)) {
 				fileEntries.add((FileTreeNode)selectedNode);
 			}else if(FileTreeNode.FOLDER_TYPE.equals(selectedNode.getType())){
 				this.getFileEntries(selectedNode.getChildren(), fileEntries);
@@ -373,7 +405,7 @@ public class LocalFileTree implements Serializable{
 	public FileTreeNode getLeafByName(String nodeName){
 		
 		if(nodeName!=null){
-			return getLeafByName(treeRoot, nodeName);
+			return getLeafByName(userNode, nodeName);
 		}
 		return null;
 	}
@@ -389,7 +421,7 @@ public class LocalFileTree implements Serializable{
 			for(int i = 0; i < treeIds.length; i++){
 				target = target.getChildren().get(Integer.valueOf(treeIds[i]));
 			}
-			if(target.isLeaf() && FileTreeNode.FILE_TYPE.equals(target.getType())){
+			if(isLeafAndFile(target)){
 				return (FileTreeNode) target;	
 			}
 			
@@ -424,14 +456,14 @@ public class LocalFileTree implements Serializable{
 		if(!target.isLeaf()){
 			for(TreeNode n : target.getChildren()){
 				if(n.isLeaf()){
-					if(FileTreeNode.FILE_TYPE.equals(n.getType())){
+					if(((FileTreeNode)target).isDocument()){
 						ret.add((FileTreeNode)n);	
 					}
 				}else{
 					getLeafs(ret, n);
 				}
 			}
-		}else if(target.isLeaf() && FileTreeNode.FILE_TYPE.equals(target.getType())){
+		}else if(isLeafAndFile(target)){
 			ret.add((FileTreeNode)target);
 		}
 	}
@@ -440,7 +472,7 @@ public class LocalFileTree implements Serializable{
 		if(!target.isLeaf()){
 			for(TreeNode n : target.getChildren()){
 				if(n.isLeaf()){
-					if(FileTreeNode.FILE_TYPE.equals(n.getType()) && n.getData().equals(name)){
+					if(((FileTreeNode)target).isDocument() && n.getData().equals(name)){
 						return (FileTreeNode) n;	
 					}
 				}else{
@@ -451,12 +483,16 @@ public class LocalFileTree implements Serializable{
 					
 				}
 			}
-		}else if(target.isLeaf() && FileTreeNode.FILE_TYPE.equals(target.getType()) && target.getData().equals(name)){
+		}else if(isLeafAndFile(target) && target.getData().equals(name)){
 			return (FileTreeNode)target;
 		}
 		
 		return null;
 		
+	}
+	
+	private boolean isLeafAndFile(TreeNode target){
+		return target.isLeaf() && ((FileTreeNode)target).isDocument();
 	}
 
 	public FileTreeNode getTreeRoot() {
@@ -504,22 +540,17 @@ public class LocalFileTree implements Serializable{
 			
 			FileNode file = nodes.get(0);
 			FileInfoDTO fileDTO = fileInfoReferenceMap.get(file.getUuid());
-			boolean skip = false;
-			for (TreeNode n : newParent.getParent().getChildren()) {
-				FileTreeNode tn = (FileTreeNode) n;
-				if(file.getName().equals(((FileTreeNode)tn).getFileNode().getName())){
-					skip = true;
-					break;
-				}
-			}
-			if(!skip){
+			
+			
 				if(fileDTO != null){
 					file.setDocumentRecordId(fileDTO.getDocumentRecordId());
 					file.setAnalysisJobId(fileDTO.getAnalysisJobId());
-					new FileTreeNode(file,  newParent.getParent());		
+					new FileTreeNode(file,  newParent.getParent());
+					newParent.getParent().getChildren().remove(newParent);
 				}
-			}
-			newParent.getParent().getChildren().remove(newParent);
+		
+			
+			
 			
 		}else{
 			for(FileNode sourceNode : sourceParent.getChildren()){
@@ -607,7 +638,7 @@ public class LocalFileTree implements Serializable{
 	}
 	
 	public String findNameByUuid(long folderUuid){
-		return (String)findNodeByUuid(folderUuid, treeRoot).getData();	
+		return (String)findNodeByUuid(folderUuid, userNode).getData();	
 	}
 	
 	private TreeNode findNodeByUuid(long folderUuid, TreeNode startNode){
@@ -682,7 +713,8 @@ public class LocalFileTree implements Serializable{
 		
 		extractFolderHierachic(targetNode, path);
 		
-		return path.toString();
+		//Substring to remove the "|root|" from the path
+		return path.substring(6);
 	}
 	
 	private void extractFolderHierachic(TreeNode node, StringBuilder treePath) throws Exception {
@@ -703,10 +735,19 @@ public class LocalFileTree implements Serializable{
 		if(this.getSelectedNode() != null){
 			return this.getSelectedNode().getUuid();
 		}else{
-			return this.getTreeRoot().getUuid();
+			return userNode.getUuid();
 		}
 	}
 	public void setDefaultSelected(){
-		this.selectedNode = this.treeRoot;
+		this.selectedNode = this.userNode;
+	}
+
+
+	public FileTreeNode getEurekaNode() {
+		return eurekaNode;
+	}
+	public FileTreeNode getMySubjectsNode() {
+		return userNode;
 	}
 }
+
