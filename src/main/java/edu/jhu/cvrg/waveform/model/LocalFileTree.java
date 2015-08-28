@@ -541,16 +541,13 @@ public class LocalFileTree implements Serializable{
 			FileNode file = nodes.get(0);
 			FileInfoDTO fileDTO = fileInfoReferenceMap.get(file.getUuid());
 			
+			if(fileDTO != null){
+				file.setDocumentRecordId(fileDTO.getDocumentRecordId());
+				file.setAnalysisJobId(fileDTO.getAnalysisJobId());
+				new FileTreeNode(file,  newParent.getParent());
+			}
 			
-				if(fileDTO != null){
-					file.setDocumentRecordId(fileDTO.getDocumentRecordId());
-					file.setAnalysisJobId(fileDTO.getAnalysisJobId());
-					new FileTreeNode(file,  newParent.getParent());
-					newParent.getParent().getChildren().remove(newParent);
-				}
-		
-			
-			
+			newParent.getParent().getChildren().remove(newParent);
 			
 		}else{
 			for(FileNode sourceNode : sourceParent.getChildren()){
