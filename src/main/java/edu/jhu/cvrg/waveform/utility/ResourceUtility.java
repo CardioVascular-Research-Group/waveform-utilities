@@ -42,16 +42,15 @@ public class ResourceUtility {
 	
 	private static String MISSING_VALUE = "0";
 	
+	private ResourceUtility(){}
+	
 	public static String getServerName(){
-		
 		LiferayFacesContext liferayFacesContext = LiferayFacesContext.getInstance();
 		PortletRequest request = (PortletRequest)liferayFacesContext.getExternalContext().getRequest();
-		
 		String serverName = request.getServerName();
 		if(request.getServerPort() > 0){
 			serverName = serverName + ":" + String.valueOf(request.getServerPort());
 		}
-		
 		return serverName;
 	}
 	
@@ -233,7 +232,6 @@ public class ResourceUtility {
 	}
 	
 	public static boolean isUserCommunityMember(long userId, long communityId){
-		
 		try {
 			List<Group> userGroups = GroupLocalServiceUtil.getUserGroups(userId);
 			
@@ -266,13 +264,11 @@ public class ResourceUtility {
 			printErrorMessage("Resource Utility");
 			e.printStackTrace();
 		}
-
 		return groupId;
 	}
 	
 	public static String convertToUserName(long userId){
 		String userFullName = "";
-		
 		try {
 			User user = UserLocalServiceUtil.getUser(userId);
 			userFullName = user.getFullName();
@@ -283,7 +279,6 @@ public class ResourceUtility {
 			printErrorMessage("Resource Utility");
 			e.printStackTrace();
 		}
-		
 		return userFullName;
 	}
 	
@@ -303,41 +298,11 @@ public class ResourceUtility {
     	FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, title, sb.toString()));
 	}  
 
-	public static String getBioportalAPIServerURL(){
-		String activeServer = getValue("bioportal.active.server");
-		
-		if(activeServer == null){
-			activeServer = "remote";
-		}
-		return  getValue("bioportal."+activeServer+".api.server.url");
-	}
-	
-	public static String getBioportalUIServerURL(){
-		String activeServer = getValue("bioportal.active.server");
-		
-		if(activeServer == null){
-			activeServer = "remote";
-		}
-		return  getValue("bioportal."+activeServer+".ui.server.url");
-	}
-	
-	public static String getBioportalApikey(){
-		String activeServer = getValue("bioportal.active.server");
-		
-		if(activeServer == null){
-			activeServer = "remote";
-		}
-		return  getValue("bioportal."+activeServer+".apikey");
-	}
-	
 	public static EnumFileStoreType getFileStorageType(){
-		
 		String fileStoreType = getValue("file.storage");
-		
 		if(fileStoreType.equals("liferay61")){
 			return EnumFileStoreType.LIFERAY_61;
 		}
-
-		return EnumFileStoreType.LIFERAY_61;//default
+		return null;
 	}
 }

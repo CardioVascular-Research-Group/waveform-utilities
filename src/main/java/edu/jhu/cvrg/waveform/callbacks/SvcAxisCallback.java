@@ -29,8 +29,7 @@ import edu.jhu.cvrg.waveform.utility.ServerUtility;
 import edu.jhu.cvrg.waveform.utility.WebServiceUtility;
 
 public abstract class SvcAxisCallback implements AxisCallback{
-	protected boolean verbose = false;
-	protected ServerUtility util = new ServerUtility(verbose);
+	protected ServerUtility util = new ServerUtility();
 	protected AnalysisInProgress aIP;
 
 	public void onComplete() {}
@@ -38,17 +37,13 @@ public abstract class SvcAxisCallback implements AxisCallback{
 	public void onFault(MessageContext msgContext) {}
 
 	public void onMessage(MessageContext msgContext) {
-		
-		OMElement omMessage = msgContext.getEnvelope().getBody().getFirstElement();
-		
+		OMElement omMessage = msgContext.getEnvelope().getBody().getFirstElement();	
 		Map<String, Object> paramMap = WebServiceUtility.buildParamMap(omMessage);
 		String sJobID = (String) paramMap.get("jobID");
-		
 		completeProcess(paramMap, sJobID);
 	}
 	
 	protected abstract void completeProcess(Map<String, Object> paramMap, String sJobID);
 	
-
 	public void onError(Exception ex) {}	
 }
