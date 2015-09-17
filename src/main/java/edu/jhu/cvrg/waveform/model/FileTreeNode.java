@@ -1,5 +1,22 @@
 package edu.jhu.cvrg.waveform.model;
+/*
+Copyright 2015 Johns Hopkins University Institute for Computational Medicine
 
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+/**
+* @author CVRG Team
+*/
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
 
@@ -18,16 +35,10 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 	
 	private long uuid;
 	private FileNode fileNode;
-	
-	public FileNode getFileNode(){
-		return this.fileNode;
-	}
 
 	public FileTreeNode(FileNode sourceNode, TreeNode parentNode){
 		super(getNodeName(sourceNode.getName(), true), parentNode);
-		
 		this.fileNode = sourceNode;
-
 		if(fileNode.getDocumentRecordId() != null){
 			this.setType(FILE_TYPE);
 		}else if(fileNode.getAnalysisJobId() != null){
@@ -35,45 +46,24 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 		}else{
 			this.setType(FILE_ERROR_TYPE);
 		}
-		
 		this.uuid = sourceNode.getUuid();
-		
 	}
+	
 	public FileTreeNode(String type, FileNode sourceNode, TreeNode parentNode){
 		super(type, sourceNode.getName(), parentNode);
 		this.uuid = sourceNode.getUuid();
 		this.fileNode = sourceNode;
 	}
+	
 	public FileTreeNode(String type, String fileNodeName, TreeNode parentNode, long uuid){
 		super(type, fileNodeName, parentNode);
 		this.uuid = uuid;
 	}
-	
-	private static String getNodeName(String filename, boolean hideExtension) {
-		if(hideExtension && filename.lastIndexOf('.') != -1){
-			return filename.substring(0, filename.lastIndexOf('.'));
-		}else{
-			return filename;
-		}
-	}
-	
-	public String getTreePath(){
-		StringBuilder sb = new StringBuilder();
-		
-		this.getPath(getParent(), sb);
-		
-		return sb.toString();
-	}
-		
-	private void getPath(TreeNode node, StringBuilder path){
-		if(node != null){
-			if(node.getParent() !=null ){
-				getPath(node.getParent(), path);
-				path.append('/').append(node.getData());
-			}
-		}
-	}
 
+	public Long getAnalysisJobId() {
+		return this.fileNode.getAnalysisJobId();
+	}
+	
 	public Object getContent() {
 		return this.fileNode.getContent();
 	}
@@ -82,8 +72,31 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 		return this.fileNode.getDocumentRecordId();
 	}
 
-	public Long getAnalysisJobId() {
-		return this.fileNode.getAnalysisJobId();
+	public FileNode getFileNode(){
+		return this.fileNode;
+	}
+
+	private static String getNodeName(String filename, boolean hideExtension) {
+		if(hideExtension && filename.lastIndexOf('.') != -1){
+			return filename.substring(0, filename.lastIndexOf('.'));
+		}else{
+			return filename;
+		}
+	}
+	
+	private void getPath(TreeNode node, StringBuilder path){
+		if(node != null){
+			if(node.getParent() !=null ){
+				getPath(node.getParent(), path);
+				path.append('/').append(node.getData());
+			}
+		}
+	}
+	
+	public String getTreePath(){
+		StringBuilder sb = new StringBuilder();
+		this.getPath(getParent(), sb);
+		return sb.toString();
 	}
 
 	public long getUuid() {
@@ -118,7 +131,5 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 	
 	public boolean isDocument(){
 		return FileTreeNode.FILE_TYPE.equals(this.getType()) || FileTreeNode.FILE_ANALYSIS_TYPE.equals(this.getType());
-	}
-	
-	
+	}	
 }
