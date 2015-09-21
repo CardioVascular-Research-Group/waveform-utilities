@@ -430,4 +430,8 @@ public class LocalFileTree implements Serializable{
 	public FileTreeNode getMySubjectsNode() {
 		return userNode;
 	}
+	
+	public void refresh(){
+		this.initialize(userId);
+	}
 }
