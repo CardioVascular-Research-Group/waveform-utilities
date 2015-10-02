@@ -4,7 +4,7 @@
   <groupId>edu.jhu.cvrg.waveform</groupId>
   <artifactId>waveform-utilities</artifactId>
   <packaging>jar</packaging>
-  <version>1.2-SNAPSHOT</version>
+  <version>1.2.0.1-SNAPSHOT</version>
   <name>waveform-utilities</name>
   <url>http://maven.apache.org</url>
 
