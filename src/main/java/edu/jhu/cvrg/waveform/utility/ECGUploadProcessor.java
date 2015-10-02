@@ -344,7 +344,7 @@ public class ECGUploadProcessor {
 					}
 				}
 				
-				ann = new AnnotationDTO(userId, docId, processor.getName(), type, termName, 
+				ann = new AnnotationDTO(null, docId, processor.getName(), type, termName, 
 										bioportalOntology, 
 										bioportalClassId, null /*will be generate at constructor*/,
 									    leadIndex, null/*unit*/, fullAnnotation, annotationArray.get(name), new GregorianCalendar(), 
