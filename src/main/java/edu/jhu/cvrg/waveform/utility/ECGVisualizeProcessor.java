@@ -21,7 +21,7 @@ public class ECGVisualizeProcessor {
 	
 	private static Map<String, JSONObject> retrieveTimeSeries(long duration, String[] leadNames, String timeseriesId) {
 		
-		final String OPENTSDB_URL = "http://10.162.38.31:4242";
+		final String OPENTSDB_URL = "http://"+ResourceUtility.getOpenTsdbHost()+":4242";
 		HashMap<String, String> tags = new HashMap<String, String>();
 		
 		Calendar zeroTime = new GregorianCalendar(2015, Calendar.JANUARY, 1);

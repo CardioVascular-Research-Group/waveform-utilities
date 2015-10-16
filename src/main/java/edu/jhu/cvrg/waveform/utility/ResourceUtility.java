@@ -18,6 +18,7 @@ limitations under the License.
 * @author Chris Jurado
 * 
 */
+import java.util.HashMap;
 import java.util.List;
 
 import javax.faces.application.FacesMessage;
@@ -41,6 +42,7 @@ import edu.jhu.cvrg.filestore.enums.EnumFileStoreType;
 public class ResourceUtility {
 	
 	private static String MISSING_VALUE = "0";
+	private static HashMap<String, String> GLOBAL_PROPERTIES = new HashMap<String, String>(); 
 	
 	private ResourceUtility(){}
 	
@@ -58,6 +60,17 @@ public class ResourceUtility {
 		String value = MISSING_VALUE;
 		try {
 			value = PrefsPropsUtil.getString(key);
+		} catch (SystemException e) {
+			printErrorMessage("Resource Utility");
+			System.err.println("Resource Configuration file not found.");
+		}
+		return value;
+	}
+	
+	private static String getValue(long companyId, String key)  {
+		String value = MISSING_VALUE;
+		try {
+			value = PrefsPropsUtil.getString(companyId, key);
 		} catch (SystemException e) {
 			printErrorMessage("Resource Utility");
 			System.err.println("Resource Configuration file not found.");
@@ -172,7 +185,19 @@ public class ResourceUtility {
 	
 	public static String getLocalDownloadFolder()  {
 		return getValue("localDownloadFolder");
-	}	
+	}
+	
+	public static String getOpenTsdbHost()  {
+		return GLOBAL_PROPERTIES.get("opentsdb.host");
+	}
+	
+	public static String getOpenTsdbSshUser()  {
+		return GLOBAL_PROPERTIES.get("opentsdb.ssh.user");
+	}
+	
+	public static String getOpenTsdbSshPassword()  {
+		return GLOBAL_PROPERTIES.get("opentsdb.ssh.password");
+	}
 	
 	public static void printErrorMessage(String source){
 		System.err.println("*************************** Error in " + source + " ******************************");
@@ -199,11 +224,23 @@ public class ResourceUtility {
 		return themeDisplay.getLayout().getGroupId();	
 	}
 	
-	public static long getCurrentCompanyId(){	
+	public static long getCurrentCompanyId(){
+		
 		LiferayFacesContext liferayFacesContext = LiferayFacesContext.getInstance();
 		PortletRequest request = (PortletRequest)liferayFacesContext.getExternalContext().getRequest();
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(WebKeys.THEME_DISPLAY);
-		return themeDisplay.getCompanyId();	
+		long companyId = themeDisplay.getCompanyId();
+		
+		String[] portalPrefKeys = new String[]{"opentsdb.host","opentsdb.ssh.user","opentsdb.ssh.password"};
+		
+		for (String key : portalPrefKeys) {
+			String value = getValue(companyId, key);
+			if(value != null){
+				GLOBAL_PROPERTIES.put(key, value);
+			}
+		}
+		
+		return companyId;
 	}
 	
 	public static User getCurrentUser(){
