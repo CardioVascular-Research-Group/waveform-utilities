@@ -40,7 +40,7 @@
   <classpathentry kind="var" path="M2_REPO/org/json/json/20090211/json-20090211.jar"/>
   <classpathentry kind="var" path="M2_REPO/junit/junit/4.11/junit-4.11.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>
-  <classpathentry kind="var" path="M2_REPO/edu/jhu/cvrg/cvrg-filestore/2.0.1-SNAPSHOT/cvrg-filestore-2.0.1-SNAPSHOT.jar"/>
+  <classpathentry kind="var" path="M2_REPO/edu/jhu/cvrg/cvrg-filestore/2.0.1.1-SNAPSHOT/cvrg-filestore-2.0.1.1-SNAPSHOT.jar"/>
   <classpathentry kind="var" path="M2_REPO/edu/jhu/icm/cvrg-ecg-converter/1.5.6-SNAPSHOT/cvrg-ecg-converter-1.5.6-SNAPSHOT.jar"/>
   <classpathentry kind="var" path="M2_REPO/jfree/jfreechart/1.0.9/jfreechart-1.0.9.jar"/>
   <classpathentry kind="var" path="M2_REPO/jfree/jcommon/1.0.12/jcommon-1.0.12.jar"/>
@@ -53,7 +53,8 @@
   <classpathentry kind="var" path="M2_REPO/org/sierraecg/jsierraecg/1.0-SNAPSHOT/jsierraecg-1.0-SNAPSHOT.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/cvrgrid/philips/Phlilips1.04/1.0-SNAPSHOT/Phlilips1.04-1.0-SNAPSHOT.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/cvrgrid/schiller/schiller-data/1.0-SNAPSHOT/schiller-data-1.0-SNAPSHOT.jar"/>
-  <classpathentry kind="var" path="M2_REPO/edu/jhu/cvrg/cvrg-opentsdb-client/0.7.6-SNAPSHOT/cvrg-opentsdb-client-0.7.6-SNAPSHOT.jar"/>
+  <classpathentry kind="var" path="M2_REPO/edu/jhu/cvrg/cvrg-opentsdb-client/0.8.7.1-SNAPSHOT/cvrg-opentsdb-client-0.8.7.1-SNAPSHOT.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/google/code/gson/gson/2.3/gson-2.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-io/commons-io/2.4/commons-io-2.4.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/jcraft/jsch/0.1.53/jsch-0.1.53.jar"/>
 </classpath>
