@@ -154,25 +154,4 @@ public class ECGVisualizeProcessor {
 	
 		return visualizationData;
 	}
-	
-	
-	
-	public static void main(String[] args) throws JSONException {
-		String[] labelNames = new String[]{"I", "II", "III"};
-//		Map<String, JSONObject> data = p.retrieveTimeSeries(50L, labelNames, "5631cfd8-0ab8-4a02-9921-29979595716b");
-//		
-//		for (int i = 0; i < labelNames.length; i++) {
-//			JSONObject leadData = data.get(labelNames[i]);
-//			for (Iterator iterator = leadData.sortedKeys(); iterator.hasNext();) {
-//				String key = (String) iterator.next();
-//				System.out.print(leadData.getInt(key));
-//				System.out.print(',');
-//			}
-//			System.out.println();
-//		}
-		
-		VisualizationData visData = ECGVisualizeProcessor.fetchDataSegment("5631cfd8-0ab8-4a02-9921-29979595716b", labelNames, 0, 50, 1000, false, 82500, 500, 200.0);
-		visData.setSaLeadName(new String[]{"time", "I", "II", "III"});
-		System.out.println(visData.getECGDataSingleString()); 
-	}
 }

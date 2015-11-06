@@ -43,6 +43,7 @@ public class ResourceUtility {
 	
 	private static String MISSING_VALUE = "0";
 	private static HashMap<String, String> GLOBAL_PROPERTIES = new HashMap<String, String>(); 
+	private static String[] portalPrefKeys = new String[]{"opentsdb.host","opentsdb.ssh.user","opentsdb.ssh.password","opentsdb.strategy"};
 	
 	private ResourceUtility(){}
 	
@@ -188,16 +189,21 @@ public class ResourceUtility {
 	}
 	
 	public static String getOpenTsdbHost()  {
-		return GLOBAL_PROPERTIES.get("opentsdb.host");
+		return GLOBAL_PROPERTIES.get(portalPrefKeys[0]);
 	}
 	
 	public static String getOpenTsdbSshUser()  {
-		return GLOBAL_PROPERTIES.get("opentsdb.ssh.user");
+		return GLOBAL_PROPERTIES.get(portalPrefKeys[1]);
 	}
 	
 	public static String getOpenTsdbSshPassword()  {
-		return GLOBAL_PROPERTIES.get("opentsdb.ssh.password");
+		return GLOBAL_PROPERTIES.get(portalPrefKeys[2]);
 	}
+	
+	public static String getOpenTsdStrategy()  {
+		return GLOBAL_PROPERTIES.get(portalPrefKeys[3]);
+	}
+	
 	
 	public static void printErrorMessage(String source){
 		System.err.println("*************************** Error in " + source + " ******************************");
@@ -230,8 +236,6 @@ public class ResourceUtility {
 		PortletRequest request = (PortletRequest)liferayFacesContext.getExternalContext().getRequest();
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(WebKeys.THEME_DISPLAY);
 		long companyId = themeDisplay.getCompanyId();
-		
-		String[] portalPrefKeys = new String[]{"opentsdb.host","opentsdb.ssh.user","opentsdb.ssh.password"};
 		
 		for (String key : portalPrefKeys) {
 			String value = getValue(companyId, key);

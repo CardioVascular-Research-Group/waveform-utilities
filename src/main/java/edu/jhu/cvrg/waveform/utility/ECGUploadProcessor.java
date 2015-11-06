@@ -44,7 +44,7 @@ public class ECGUploadProcessor {
 	private static Logger log = Logger.getLogger(ECGUploadProcessor.class);
 	private static Map<String, Map<String, String>> ontologyCache = new HashMap<String, Map<String,String>>();
 	
-	public void execute(ECGFileMeta ecgFile)  throws DataExtractException {
+	public void execute(ECGFileMeta ecgFile, String openTsdbHost)  throws DataExtractException {
 		
 		ECGFileData fileData = null;
 		Connection dbUtility = null;
@@ -92,8 +92,6 @@ public class ECGUploadProcessor {
 			ecgFile.setChannels(fileData.channels);
 			ecgFile.setNumberOfPoints(fileData.samplesPerChannel * fileData.channels);
 	
-			
-			
 		}catch(Exception e){
 			message = e.getMessage();
 		}finally{
@@ -114,7 +112,7 @@ public class ECGUploadProcessor {
 		
 		try{
 			
-			this.storeTimeSeries(ecgFile, fileData, timeseriesId);
+			this.storeTimeSeries(ecgFile, fileData, timeseriesId, openTsdbHost);
 		
 //			ECGFormatWriter writer = new ECGFormatWriter();
 //			String outputPath = ServiceProperties.getInstance().getProperty(ServiceProperties.TEMP_FOLDER)+File.separator+'c'+File.separator+userId+File.separator;
@@ -217,9 +215,10 @@ public class ECGUploadProcessor {
 		
 	}
 
-	private void storeTimeSeries(ECGFileMeta ecgFile, ECGFileData fileData, String timeseriesId) {
+	private void storeTimeSeries(ECGFileMeta ecgFile, ECGFileData fileData, String timeseriesId, String openTsdbHost) {
 		
-		final String OPENTSDB_URL = "http://"+ResourceUtility.getOpenTsdbHost()+":4242";
+		
+		String OPENTSDB_URL = "http://"+openTsdbHost+":4242";
 		HashMap<String, String> tags = new HashMap<String, String>();
 		
 		Calendar zeroTime = new GregorianCalendar(2015, Calendar.JANUARY, 1);
