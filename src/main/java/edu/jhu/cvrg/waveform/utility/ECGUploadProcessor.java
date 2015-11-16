@@ -26,6 +26,7 @@ import edu.jhu.cvrg.data.factory.Connection;
 import edu.jhu.cvrg.data.factory.ConnectionFactory;
 import edu.jhu.cvrg.data.util.DataStorageException;
 import edu.jhu.cvrg.filestore.enums.EnumFileExtension;
+import edu.jhu.cvrg.timeseriesstore.exceptions.OpenTSDBException;
 import edu.jhu.cvrg.timeseriesstore.model.IncomingDataPoint;
 import edu.jhu.cvrg.timeseriesstore.opentsdb.TimeSeriesStorer;
 import edu.jhu.cvrg.waveform.exception.DataExtractException;
@@ -146,11 +147,23 @@ public class ECGUploadProcessor {
 			
 		}catch (Exception e){
 			message = e.getMessage();
+			if(e.getCause() != null && !e.getCause().equals(e)){
+				message+=(" casued by: "+ e.getCause().getMessage());
+			}
 		}finally{
 			writeTime = java.lang.System.currentTimeMillis() - writeTime;
 			log.info("["+ecgFile.getDocumentId()+"]The runtime for writing the new file(" + ecgFile.getRecordName() + ") is = " + writeTime + " milliseconds");
+			
+			Boolean status = null;
+			if(!noConversionErrors){
+				status = Boolean.FALSE;
+				throw new DataExtractException(message);
+			}else if(done){
+				status = Boolean.TRUE;
+			}
+			
 			try{
-				dbUtility.updateUploadStatus(ecgFile.getDocumentId(), UploadState.WRITE, writeTime, (!noConversionErrors && done) ? Boolean.TRUE : null, message);
+				dbUtility.updateUploadStatus(ecgFile.getDocumentId(), (noConversionErrors) ? UploadState.WRITE : null, writeTime, status, message);
 			}catch(Exception e){
 				throw new DataExtractException("Error in status update, on write.");
 			}
@@ -215,7 +228,7 @@ public class ECGUploadProcessor {
 		
 	}
 
-	private void storeTimeSeries(ECGFileMeta ecgFile, ECGFileData fileData, String timeseriesId, String openTsdbHost) {
+	private void storeTimeSeries(ECGFileMeta ecgFile, ECGFileData fileData, String timeseriesId, String openTsdbHost) throws OpenTSDBException {
 		
 		
 		String OPENTSDB_URL = "http://"+openTsdbHost+":4242";

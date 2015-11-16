@@ -11,7 +11,9 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import edu.jhu.cvrg.timeseriesstore.exceptions.OpenTSDBException;
 import edu.jhu.cvrg.timeseriesstore.opentsdb.TimeSeriesRetriever;
+import edu.jhu.cvrg.waveform.exception.VisualizeFailureException;
 import edu.jhu.cvrg.waveform.model.VisualizationData;
 
 public class ECGVisualizeProcessor {
@@ -19,9 +21,9 @@ public class ECGVisualizeProcessor {
 	private static Logger log = Logger.getLogger(ECGVisualizeProcessor.class);
 	
 	
-	private static Map<String, JSONObject> retrieveTimeSeries(long duration, String[] leadNames, String timeseriesId) {
+	private static Map<String, JSONObject> retrieveTimeSeries(long duration, String[] leadNames, String timeseriesId, String openTsdbHost) throws OpenTSDBException{
 		
-		final String OPENTSDB_URL = "http://"+ResourceUtility.getOpenTsdbHost()+":4242";
+		final String OPENTSDB_URL = "http://"+openTsdbHost+":4242";
 		HashMap<String, String> tags = new HashMap<String, String>();
 		
 		Calendar zeroTime = new GregorianCalendar(2015, Calendar.JANUARY, 1);
@@ -38,11 +40,14 @@ public class ECGVisualizeProcessor {
 			
 			try {
 				JSONObject jsonPoints = TimeSeriesRetriever.retrieveTimeSeries(OPENTSDB_URL, zeroTimeInMillis, zeroTimeInMillis+(duration*1000), "ecg."+leadName+".uv", tags);
-				JSONObject data = jsonPoints.getJSONObject("dps");
-				returnMap.put(leadName, data);
-				
+				if(jsonPoints != null){
+					JSONObject data = jsonPoints.getJSONObject("dps");
+					returnMap.put(leadName, data);	
+				}else{
+					throw new OpenTSDBException("Timeseries data not found");
+				}
 			} catch (JSONException e) {
-				e.printStackTrace();
+				throw new OpenTSDBException("Timeseries data not found", e);
 			}
 		}
 		log.info("OpenTSDB retrieve data from timeseriesId: "+ timeseriesId);
@@ -51,7 +56,7 @@ public class ECGVisualizeProcessor {
 	}
 	
 	
-	public static VisualizationData fetchDataSegment(String timeseriesId, String[] leadNames, int offsetMilliSeconds, int durationMilliSeconds, int graphWidthPixels, boolean skipSamples, int counts, int samplingRate, double adugain) {
+	public static VisualizationData fetchDataSegment(String openTsdbHost, String timeseriesId, String[] leadNames, int offsetMilliSeconds, int durationMilliSeconds, int graphWidthPixels, boolean skipSamples, int counts, int samplingRate, double adugain) throws VisualizeFailureException{
 		
 		VisualizationData visualizationData = new VisualizationData();
 		
@@ -102,10 +107,10 @@ public class ECGVisualizeProcessor {
 				}
 			}
 			
-			data = retrieveTimeSeries(durationMilliSeconds, leadNames, timeseriesId);
+			data = retrieveTimeSeries(durationMilliSeconds, leadNames, timeseriesId, openTsdbHost);
 			
 		} catch(Exception e1) {
-			e1.printStackTrace();
+			throw new VisualizeFailureException("Unable to retrieve timeseries data", e1);
 		} 
 	
 		try {
@@ -148,7 +153,7 @@ public class ECGVisualizeProcessor {
 			visualizationData.setECGData(segmentData);
 			//*******************************************
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new VisualizeFailureException("Fail to prepare the response data", e);
 		}
 		//*******************************************
 	

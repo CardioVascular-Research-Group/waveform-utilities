@@ -56,7 +56,7 @@ public class ECGAnalyzeProcessor {
 			 
 			createWFDBFile(commandParamMap.get("subjectID").toString(), fileData, outputFolder);
 			
-			List<String> inputFileNames = new ArrayList<>();
+			List<String> inputFileNames = new ArrayList<String>();
 			
 			for (File f : outputDirectory.listFiles()) {	
 				inputFileNames.add(f.getAbsolutePath());
