@@ -25,7 +25,6 @@ import edu.jhu.cvrg.data.enums.UploadState;
 import edu.jhu.cvrg.data.factory.Connection;
 import edu.jhu.cvrg.data.factory.ConnectionFactory;
 import edu.jhu.cvrg.data.util.DataStorageException;
-import edu.jhu.cvrg.filestore.enums.EnumFileExtension;
 import edu.jhu.cvrg.timeseriesstore.exceptions.OpenTSDBException;
 import edu.jhu.cvrg.timeseriesstore.model.IncomingDataPoint;
 import edu.jhu.cvrg.timeseriesstore.opentsdb.TimeSeriesStorer;
@@ -63,24 +62,24 @@ public class ECGUploadProcessor {
 			switch (FileExtension.valueOf(ecgFile.getFile().getExtension().toUpperCase())) {
 			case HEA:
 				if(ecgFile.getAuxiliarFiles().size() > 1){
-					fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getAuxiliarFiles().get(EnumFileExtension.DAT).getFileDataAsInputStream(), ecgFile.getFile().getFileDataAsInputStream() /*, ecgFile.getAuxiliarFiles().get(EnumFileExtension.XYZ).getFileDataAsInputStream()*/, ecgFile.getRecordName());
+					fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getAuxiliarFiles().get(FileExtension.DAT).getFileDataAsInputStream(), ecgFile.getFile().getFileDataAsInputStream() /*, ecgFile.getAuxiliarFiles().get(EnumFileExtension.XYZ).getFileDataAsInputStream()*/, ecgFile.getRecordName());
 					
 				}else{
-					fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getAuxiliarFiles().get(EnumFileExtension.DAT).getFileDataAsInputStream(), ecgFile.getFile().getFileDataAsInputStream(), ecgFile.getRecordName());
+					fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getAuxiliarFiles().get(FileExtension.DAT).getFileDataAsInputStream(), ecgFile.getFile().getFileDataAsInputStream(), ecgFile.getRecordName());
 				}
 				break;
 			case DAT:
 				if(ecgFile.getAuxiliarFiles().size() > 1){
-					fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getFile().getFileDataAsInputStream(), ecgFile.getAuxiliarFiles().get(EnumFileExtension.HEA).getFileDataAsInputStream() /*, ecgFile.getAuxiliarFiles().get(EnumFileExtension.XYZ).getFileDataAsInputStream()*/, ecgFile.getRecordName());
+					fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getFile().getFileDataAsInputStream(), ecgFile.getAuxiliarFiles().get(FileExtension.HEA).getFileDataAsInputStream() /*, ecgFile.getAuxiliarFiles().get(EnumFileExtension.XYZ).getFileDataAsInputStream()*/, ecgFile.getRecordName());
 				}else{
-					fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getFile().getFileDataAsInputStream(), ecgFile.getAuxiliarFiles().get(EnumFileExtension.HEA).getFileDataAsInputStream(), ecgFile.getRecordName());
+					fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getFile().getFileDataAsInputStream(), ecgFile.getAuxiliarFiles().get(FileExtension.HEA).getFileDataAsInputStream(), ecgFile.getRecordName());
 				}
 				break;
 			case XYZ:
 				if(ecgFile.getAuxiliarFiles().size() > 1){
-					fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getAuxiliarFiles().get(EnumFileExtension.DAT).getFileDataAsInputStream(), ecgFile.getAuxiliarFiles().get(EnumFileExtension.HEA).getFileDataAsInputStream() /*, ecgFile.getFile().getFileDataAsInputStream()*/, ecgFile.getRecordName());
+					fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getAuxiliarFiles().get(FileExtension.DAT).getFileDataAsInputStream(), ecgFile.getAuxiliarFiles().get(FileExtension.HEA).getFileDataAsInputStream() /*, ecgFile.getFile().getFileDataAsInputStream()*/, ecgFile.getRecordName());
 				}else{
-					fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getAuxiliarFiles().get(EnumFileExtension.DAT).getFileDataAsInputStream(), ecgFile.getAuxiliarFiles().get(EnumFileExtension.HEA).getFileDataAsInputStream(), ecgFile.getRecordName());
+					fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getAuxiliarFiles().get(FileExtension.DAT).getFileDataAsInputStream(), ecgFile.getAuxiliarFiles().get(FileExtension.HEA).getFileDataAsInputStream(), ecgFile.getRecordName());
 				}
 				break;
 			default:
@@ -254,9 +253,10 @@ public class ECGUploadProcessor {
 				String value = Integer.valueOf(fileData.data[channel][sample]).toString();
 				points.add(new IncomingDataPoint("ecg."+leadName+".uv", zeroTimeInMillis + (timeGapBetweenPoints * sample), value, tags));
 			}
-			
+		
+			TimeSeriesStorer.storeTimePoints(OPENTSDB_URL, points);
+			points.clear();
 		}
-		TimeSeriesStorer.storeTimePoints(OPENTSDB_URL, points);
 		
 		log.info("OpenTSDB timeseriesId: "+ timeseriesId);
 	}
