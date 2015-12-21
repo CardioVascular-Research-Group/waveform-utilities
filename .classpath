@@ -17,7 +17,7 @@
   <classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0.1/geronimo-stax-api_1.0_spec-1.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/axis2/axis2/1.4.1/axis2-1.4.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/primefaces/primefaces/4.0/primefaces-4.0.jar"/>
-  <classpathentry kind="var" path="M2_REPO/edu/jhu/cvrg/cvrg-dataStorage/1.5-SNAPSHOT/cvrg-dataStorage-1.5-SNAPSHOT.jar"/>
+  <classpathentry kind="var" path="M2_REPO/edu/jhu/cvrg/cvrg-dataStorage/1.6-SNAPSHOT/cvrg-dataStorage-1.6-SNAPSHOT.jar"/>
   <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.17/log4j-1.2.17.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/hibernate/hibernate-core/4.2.8.Final/hibernate-core-4.2.8.Final.jar"/>
   <classpathentry kind="var" path="M2_REPO/antlr/antlr/2.7.7/antlr-2.7.7.jar"/>
