@@ -31,6 +31,13 @@ import edu.jhu.icm.ecgFormatConverter.ECGFileData;
 import edu.jhu.icm.ecgFormatConverter.ECGFormatWriter;
 import edu.jhu.icm.enums.DataFileFormat;
 
+/**
+ * 
+ * Class to handle the Analysis logic, to be used on any layer PORTLET or WEBSERVICE  
+ * 
+ * @author avilard4
+ *
+ */
 public class ECGAnalyzeProcessor {
 	
 	private static Logger log = Logger.getLogger(ECGAnalyzeProcessor.class);
@@ -188,37 +195,5 @@ public class ECGAnalyzeProcessor {
 	private static void createWFDBFile(String subjectId, ECGFileData ecgFile, String outputFolder){
 		ECGFormatWriter writer = new ECGFormatWriter();
 		writer.writeToFile(DataFileFormat.WFDB, outputFolder, subjectId, ecgFile);
-	}
-	
-	public static void main(String[] args) {
-		System.out.println("Analysis start");
-		long startTime = System.currentTimeMillis();
-		
-		Map<String, Object> commandMap = new HashMap<String, Object>();
-		
-		commandMap.put("userID",  "10405");
-		commandMap.put("groupID", "10179");
-		commandMap.put("folderID", "744203");
-		commandMap.put("subjectID", "ecg_97082511_1");
-		commandMap.put("durationSec", "11.0");
-		commandMap.put("parameterlist", null);
-		
-		commandMap.put("method", "chesnokovWrapperType2");
-		commandMap.put("serviceName", "physionetAnalysisService");
-		commandMap.put("URL", "http://localhost:8080/axis2/services");
-		
-		String jobID = "job_" + "1";
-		
-		commandMap.put("jobID", jobID);
-
-		AnalysisVO analysis = new AnalysisVO(commandMap.get("jobID").toString(), AnalysisType.getTypeByOmeName(commandMap.get("method").toString()), AnalysisResultType.ORIGINAL_FILE, null, commandMap);
-		
-		try {
-			ECGAnalyzeProcessor.execute(12, "I,II,III,aVR,aVL,aVF,V1,V2,V3,V4,V5,V6", 200, 5500, 500, "4dc1d0f5-1d18-44af-a4f1-dede7d6c4074", commandMap, null, analysis);
-			System.out.println("Analysis End. Total time: "+(System.currentTimeMillis()-startTime)+" ms");
-		} catch (AnalyzeFailureException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
 	}
 }

@@ -39,6 +39,13 @@ import edu.jhu.icm.ecgFormatConverter.schiller.SchillerECGFileData;
 import edu.jhu.icm.enums.DataFileFormat;
 import edu.jhu.icm.enums.LeadEnum;
 
+/**
+ * 
+ * Class to handle the Upload logic, to be used on any layer PORTLET or WEBSERVICE  
+ * 
+ * @author avilard4
+ *
+ */
 public class ECGUploadProcessor {
 
 	private static Logger log = Logger.getLogger(ECGUploadProcessor.class);
@@ -370,7 +377,7 @@ public class ECGUploadProcessor {
 		return annotationSet;
 	}
 	
-	private void tranferFileToLiferay(DataFileFormat outputFormat, DataFileFormat inputFormat, String inputFilename, String inputPath, long groupId, long folderId, long docId, long userId) throws Exception{
+//	private void tranferFileToLiferay(DataFileFormat outputFormat, DataFileFormat inputFormat, String inputFilename, String inputPath, long groupId, long folderId, long docId, long userId) throws Exception{
 		
 //		String outputExt = ".dat";
 //		if (outputFormat == DataFileFormat.RDT){ 
@@ -408,6 +415,6 @@ public class ECGUploadProcessor {
 //		
 //		dbUtility.storeFilesInfo(docId, filesId, null);
 			
-	}
+//	}
 	
 }

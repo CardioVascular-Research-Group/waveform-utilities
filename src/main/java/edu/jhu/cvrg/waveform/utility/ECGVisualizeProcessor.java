@@ -16,11 +16,28 @@ import edu.jhu.cvrg.timeseriesstore.opentsdb.TimeSeriesRetriever;
 import edu.jhu.cvrg.waveform.exception.VisualizeFailureException;
 import edu.jhu.cvrg.waveform.model.VisualizationData;
 
+/**
+ * 
+ * Class to handle the Visualize logic, to be used on any layer PORTLET or WEBSERVICE  
+ * 
+ * @author avilard4
+ *
+ */
 public class ECGVisualizeProcessor {
 
 	private static Logger log = Logger.getLogger(ECGVisualizeProcessor.class);
 	
-	
+	/**
+	 * Retreive timeseries from OPENTSDB
+	 * 
+	 * 
+	 * @param duration
+	 * @param leadNames
+	 * @param timeseriesId
+	 * @param openTsdbHost
+	 * @return
+	 * @throws OpenTSDBException
+	 */
 	private static Map<String, JSONObject> retrieveTimeSeries(long duration, String[] leadNames, String timeseriesId, String openTsdbHost) throws OpenTSDBException{
 		
 		final String OPENTSDB_URL = "http://"+openTsdbHost+":4242";
@@ -55,7 +72,22 @@ public class ECGVisualizeProcessor {
 		return returnMap;
 	}
 	
-	
+	/**
+	 * Fetch the data segment to be load
+	 *  
+	 * @param openTsdbHost
+	 * @param timeseriesId
+	 * @param leadNames
+	 * @param offsetMilliSeconds
+	 * @param durationMilliSeconds
+	 * @param graphWidthPixels
+	 * @param skipSamples
+	 * @param counts
+	 * @param samplingRate
+	 * @param adugain
+	 * @return
+	 * @throws VisualizeFailureException
+	 */
 	public static VisualizationData fetchDataSegment(String openTsdbHost, String timeseriesId, String[] leadNames, int offsetMilliSeconds, int durationMilliSeconds, int graphWidthPixels, boolean skipSamples, int counts, int samplingRate, double adugain) throws VisualizeFailureException{
 		
 		VisualizationData visualizationData = new VisualizationData();

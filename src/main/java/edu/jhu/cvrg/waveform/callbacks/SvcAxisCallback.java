@@ -28,6 +28,7 @@ import edu.jhu.cvrg.waveform.utility.AnalysisInProgress;
 import edu.jhu.cvrg.waveform.utility.ServerUtility;
 import edu.jhu.cvrg.waveform.utility.WebServiceUtility;
 
+@Deprecated
 public abstract class SvcAxisCallback implements AxisCallback{
 	protected ServerUtility util = new ServerUtility();
 	protected AnalysisInProgress aIP;

@@ -19,6 +19,12 @@ limitations under the License.
 */
 import org.apache.log4j.Logger;
 
+/**
+ * Base backing bean for all portlets
+ * 
+ * @author avilard4
+ *
+ */
 public class BackingBean {
 
 	protected Logger getLog(){
