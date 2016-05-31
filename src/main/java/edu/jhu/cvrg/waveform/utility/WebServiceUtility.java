@@ -68,7 +68,8 @@ public class WebServiceUtility {
 	public static OMElement callWebService(Map<String, String> parameterMap, String serviceMethod, 
 			String serviceName, SvcAxisCallback callback, Map<String, FSFile> filesMap){
 		OMElement result = null;
-		String analysisServiceURL = ServiceProperties.getInstance().getProperty(ServiceProperties.MAIN_SERVICE_URL);	
+		String analysisServiceURL = ServiceProperties.getInstance().getProperty(ServiceProperties.MAIN_SERVICE_URL);
+		System.out.println("Files Map has " + filesMap.size() + " files in it.");
 		result = callWebService(parameterMap, serviceMethod, serviceName, analysisServiceURL, callback, filesMap);
 		return result;
 	}
@@ -87,6 +88,7 @@ public class WebServiceUtility {
 
 	public static OMElement callWebService(Map<String, String> parameterMap, String serviceMethod, String serviceName, 
 		String serviceURL, SvcAxisCallback callback, Map<String, FSFile> filesMap){
+		System.out.println("Files Map has " + filesMap.size() + " files in it.");
 		return callWebServiceComplexParam(parameterMap, serviceMethod, serviceName, serviceURL, callback, filesMap);
 	}
 	
@@ -94,8 +96,12 @@ public class WebServiceUtility {
 		if(filesMap != null){
 			StringBuilder filesId = new StringBuilder();
 			for(String key : filesMap.keySet()){
-				OMElement fileElement = omFactory.createOMElement("file_"+key, omNamespace);
+				System.out.println("Key is " + key);
+				OMElement fileElement = omFactory.createOMElement("file_" + key, omNamespace);
 				FSFile file  = filesMap.get(key);
+				if(file == null){
+					System.out.println("File is null........");
+				}
 				DataHandler dh = new DataHandler(new ByteArrayDataSource(file.getFileDataAsBytes()));
 				OMText textData = omFactory.createOMText(dh, true);
 				fileElement.addChild(textData);
@@ -114,6 +120,25 @@ public class WebServiceUtility {
 	public static OMElement callWebServiceComplexParam(Map<String, ?> parameterMap, String serviceMethod, String serviceName, 
 		String serviceURL, SvcAxisCallback callback, Map<String, FSFile> filesMap){
 		log.info("waveform-utilities.WebServiceUtility.callWebServiceComplexParam()");
+		System.out.println("Files Map has " + filesMap.size() + " files in it.");
+		
+		
+		for(String key : filesMap.keySet()){
+			System.out.println("Testing Key is " + key);
+			FSFile file  = filesMap.get(key);
+			if(file == null){
+				System.out.println("File is null........");
+			}
+			else{
+				System.out.println("File is not null........");
+				System.out.println("File is " + file.getName());
+			}
+
+		}
+		
+		
+		
+		
 		String serviceTarget = "";
 		if(serviceName != null){
 			serviceTarget = (!serviceName.equals("")) ? serviceName : serviceMethod;

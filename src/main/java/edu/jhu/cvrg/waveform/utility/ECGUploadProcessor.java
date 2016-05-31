@@ -101,12 +101,14 @@ public class ECGUploadProcessor {
 	
 		}catch(Exception e){
 			message = e.getMessage();
+			e.printStackTrace();
 		}finally{
 			readTime = java.lang.System.currentTimeMillis() - readTime;
 			log.info("["+ecgFile.getDocumentId()+"]The runtime for reading the file(" + ecgFile.getRecordName() + ") is = " + readTime + " milliseconds");
 			try{
 				dbUtility.updateUploadStatus(ecgFile.getDocumentId(), UploadState.TRANSFER_READ, readTime, null, message);
 			}catch(Exception e){
+				e.printStackTrace();
 				throw new DataExtractException("Error in status update, on read.");
 			}
 		}
@@ -149,13 +151,14 @@ public class ECGUploadProcessor {
 //			tranferFileToLiferay(outputFormat, inputFormat, metaData.getFileName(), inputPath, groupId, folderId, docId, userId);
 			
 			noConversionErrors = true;
-			dbUtility.updateDocument(ecgFile.getDocumentId(), Double.valueOf(ecgFile.getSampFrequency()).doubleValue(), ecgFile.getChannels(), ecgFile.getNumberOfPoints(), ecgFile.getSubjectAge(), ecgFile.getSubjectSex(), null, fileData.scalingFactor, fileData.leadNames, timeseriesId);
+			dbUtility.updateDocument(ecgFile.getDocumentId(), Double.valueOf(ecgFile.getSampFrequency()).doubleValue(), ecgFile.getChannels(), ecgFile.getNumberOfPoints(), ecgFile.getSubjectAge(), ecgFile.getSubjectSex(), null, fileData.scalingFactor, fileData.leadNames, Long.valueOf(timeseriesId));
 			
 		}catch (Exception e){
 			message = e.getMessage();
 			if(e.getCause() != null && !e.getCause().equals(e)){
 				message+=(" casued by: "+ e.getCause().getMessage());
 			}
+			e.printStackTrace();
 		}finally{
 			writeTime = java.lang.System.currentTimeMillis() - writeTime;
 			log.info("["+ecgFile.getDocumentId()+"]The runtime for writing the new file(" + ecgFile.getRecordName() + ") is = " + writeTime + " milliseconds");
@@ -200,7 +203,7 @@ public class ECGUploadProcessor {
 				}else if(FileType.MUSE_XML.equals(ecgFile.getFileType())) {
 					String rawMuseXML = ((MuseXMLECGFileData) fileData).museRawXML;
 					if(rawMuseXML != null) {
-						processor = new MuseAnnotationsProcessor(rawMuseXML, ecgFile.getDocumentId());
+						processor = new MuseAnnotationsProcessor(rawMuseXML, ecgFile.getDocumentId(), ecgFile.getUserId());
 					}
 				}
 				
@@ -220,6 +223,7 @@ public class ECGUploadProcessor {
 				}
 			}catch (Exception e){
 				message = e.getMessage();
+				e.printStackTrace();
 			}finally{
 				annotationTime = java.lang.System.currentTimeMillis() - annotationTime;
 				log.info("["+ecgFile.getDocumentId()+"]The runtime for analyse annotation and entering it into the database is = " + annotationTime + " milliseconds");
@@ -276,6 +280,7 @@ public class ECGUploadProcessor {
 				success = annotationSet.size() == ConnectionFactory.createConnection().storeAnnotations(annotationSet);
 			} catch (DataStorageException e) {
 				log.error("Error on Annotation persistence. " + e.getMessage());
+				e.printStackTrace();
 				success = false;
 			}
 		}

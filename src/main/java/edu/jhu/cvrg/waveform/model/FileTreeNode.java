@@ -32,6 +32,7 @@ public class FileTreeNode extends DefaultTreeNode implements TreeNode{
 	public static final String FOLDER_TYPE = "default";
 	public static final String HOME_TYPE = "home";
 	public static final String EUREKA_TYPE = "eureka";
+	public static final String GROUP_TYPE = "group";
 	
 	private long uuid;
 	private FileNode fileNode;

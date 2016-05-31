@@ -45,13 +45,13 @@ public class LocalFileTree implements Serializable{
 
 	private static final long serialVersionUID = 4904469355710631253L;
 
-	private FileTreeNode treeRoot;
-	private FileTreeNode userNode;
+	private FileTreeNode treeRoot, groupRoot;
+	private FileTreeNode userNode, groupNode;
 	private FileTreeNode eurekaNode;
 	private FileTreeNode selectedNode;
 	private TreeNode[] selectedNodes;
 	private String newFolderName = "";
-	private FileTree sourceFileTree;
+	private FileTree sourceFileTree, groupFileTree;
 	private FileTree eurekaFileTree;
 	private Long userId = ResourceUtility.getCurrentUserId();
 	private Long groupId = ResourceUtility.getCurrentGroupId();
@@ -72,12 +72,20 @@ public class LocalFileTree implements Serializable{
 		FileNode sourceRoot = sourceFileTree.getRoot();
 		eurekaFileTree = FileTreeFactory.getFileTree(EnumFileStoreType.VIRTUAL_DB, args);
 		FileNode eurekaRoot = eurekaFileTree.getRoot();
+		groupFileTree = FileTreeFactory.getFileTree(type, groupArgs());
 		if(treeRoot == null){
 			treeRoot = new FileTreeNode(FileTreeNode.FOLDER_TYPE, "root", null, -1);
 			treeRoot.setExpanded(true);
+			if(sourceRoot == null){
+				System.out.println("SourceRoot is null");
+			}
 			userNode = new FileTreeNode(FileTreeNode.HOME_TYPE, "My Subjects", treeRoot, sourceRoot.getUuid());
 			if(eurekaRoot != null){
 				eurekaNode = new FileTreeNode(FileTreeNode.EUREKA_TYPE, eurekaRoot.getName(), treeRoot, eurekaRoot.getUuid());
+			}
+			if(groupRoot != null){
+				groupNode = new FileTreeNode(FileTreeNode.GROUP_TYPE, "My Groups", treeRoot, groupRoot.getUuid());
+
 			}
 		}
 		Map<Long, FileInfoDTO> fileInfoReferenceMap = this.getFileInfoReferenceMap(false);
@@ -395,7 +403,7 @@ public class LocalFileTree implements Serializable{
 			fileStoreType = "liferay61";
 		}
 		if(fileStoreType.equals("liferay61")){
-			this.args = new String[]{String.valueOf(groupId), String.valueOf(userId), String.valueOf(ResourceUtility.getCurrentCompanyId()), FileStoreConstants.WAVEFORM_ROOT_FOLDER_NAME, String.valueOf(userId)};
+			this.args = new String[]{String.valueOf(groupId), String.valueOf(userId), String.valueOf(ResourceUtility.getCurrentCompanyId()), FileStoreConstants.WAVEFORM_ROOT_FOLDER_NAME};
 			return EnumFileStoreType.LIFERAY_61;//default
 		}
 		return null;
@@ -415,6 +423,13 @@ public class LocalFileTree implements Serializable{
 			}
 			treePath.append('|').append(node.getData());
 		}
+	}
+	
+	private String[] groupArgs(){
+		String[] groupArgs = new String[args.length + 1];
+		System.arraycopy(args, 0, groupArgs, 0, args.length);
+		groupArgs[args.length] = "true";
+		return groupArgs;
 	}
 	
 	public long getSelectedFolderUuid(){
