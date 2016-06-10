@@ -52,19 +52,24 @@ public class ECGUploadProcessor {
 	private static Map<String, Map<String, String>> ontologyCache = new HashMap<String, Map<String,String>>();
 	
 	public void execute(ECGFileMeta ecgFile, String openTsdbHost)  throws DataExtractException {
-		
+
+		System.out.println("DEBUG: ECGUploadProcessor.execute(<ecgFile>, " + openTsdbHost);
 		ECGFileData fileData = null;
 		Connection dbUtility = null;
+
 		
 		String timeseriesId = UUID.randomUUID().toString();
+		System.out.println("DEBUG: ECGUploadProcessor.execute.timeseriesid = " + timeseriesId);
 		String message = null;
 		long readTime = java.lang.System.currentTimeMillis();
 		
 		try{
 			dbUtility = ConnectionFactory.createConnection();
-			
-			
 			ECGFormatReader reader = new ECGFormatReader();
+			
+			System.out.println("DEBUG: ECGUploadProcessor.execute file extension = " + FileExtension.valueOf(ecgFile.getFile().getExtension().toUpperCase()));
+			System.out.println("DEBUG: ECGUploadProcessor.execute file type ordinal = " + ecgFile.getFileType().ordinal());
+			System.out.println("DEBUG: ECGUploadProcessor.execute file type = " + ecgFile.getFileType());
 			
 			switch (FileExtension.valueOf(ecgFile.getFile().getExtension().toUpperCase())) {
 			case HEA:
@@ -90,6 +95,7 @@ public class ECGUploadProcessor {
 				}
 				break;
 			default:
+				System.out.println("DEBUG: ECGUploadProcessor.execute going default");
 				fileData = reader.read(DataFileFormat.values()[ecgFile.getFileType().ordinal()], ecgFile.getFile().getFileDataAsInputStream());
 				break;
 			}
@@ -240,21 +246,30 @@ public class ECGUploadProcessor {
 
 	private void storeTimeSeries(ECGFileMeta ecgFile, ECGFileData fileData, String timeseriesId, String openTsdbHost) throws OpenTSDBException {
 		
+		System.out.println("DEBUG: ECGUploadProcessor.storeTimeSeries(<ecgFile>, <fileData>, " + timeseriesId + "," + openTsdbHost + ")");
+		System.out.println("DEBUG: ECGUploadProcessor.storeTimeSeries ecgFile is null: " + ecgFile == null );
+		System.out.println("DEBUG: ECGUploadProcessor.storeTimeSeries fileData is null: " + fileData == null );
 		
-		String OPENTSDB_URL = "http://"+openTsdbHost+":4242";
+		String OPENTSDB_URL = "http://" + openTsdbHost + ":4242";
+		System.out.println("DEBUG: ECGUploadProcessor.storeTimeSeries OPENTSDB_URL is " + OPENTSDB_URL);
 		HashMap<String, String> tags = new HashMap<String, String>();
 		
 		Calendar zeroTime = new GregorianCalendar(2015, Calendar.JANUARY, 1);
 		zeroTime.setTimeZone(TimeZone.getTimeZone("US/Eastern"));
 		
 		final long zeroTimeInMillis = zeroTime.getTimeInMillis(); 
+		System.out.println("DEBUG: ECGUploadProcessor.storeTimeSeries zeroTimeInMillis is " + zeroTimeInMillis);
+		System.out.println("DEBUG: ECGUploadProcessor.storeTimeSeries timeseriesId is " + timeseriesId);
 		
 		tags.put("timeseriesid", timeseriesId);
 		
-		long timeGapBetweenPoints = 1000L/Float.valueOf(ecgFile.getSampFrequency()).longValue() * 1000; 
+		long timeGapBetweenPoints = 1000L/Float.valueOf(ecgFile.getSampFrequency()).longValue() * 1000;
+		System.out.println("DEBUG: ECGUploadProcessor.storeTimeSeries timeGapBetweenPoints is " + timeGapBetweenPoints);
 		
 		List<IncomingDataPoint> points = new ArrayList<IncomingDataPoint>();
 		
+		System.out.println("DEBUG: ECGUploadProcessor.storeTimeSeries leadNames is " + fileData.leadNames);
+
 		String[] leadNames = fileData.leadNames.split(",");
 		
 		for (int channel = 0; channel < leadNames.length; channel++) {

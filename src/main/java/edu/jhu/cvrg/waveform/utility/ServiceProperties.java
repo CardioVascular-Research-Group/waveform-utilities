@@ -96,6 +96,8 @@ public class ServiceProperties {
 		}
 		String activeServer = getProperty(BIOPORTAL_ACTIVE_SERVER);
 		activeServer = (activeServer == null) ? "remote" : activeServer;
+		System.out.println("ServiceProperties.getBioportalParam(" + type + ") = " + getProperty("bioportal." + activeServer + setting));
+		System.out.println("ServiceProperties.getBioportalParam(" + type + ") property name is " + "bioportal." + activeServer + setting); 
 		return  getProperty("bioportal." + activeServer + setting);
 	}
 }

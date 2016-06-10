@@ -277,6 +277,7 @@ public class WebServiceUtility {
 	    HttpURLConnection conn = null;
 	    try {
 	    	if(System.currentTimeMillis() > waitUntil){
+	    		System.out.println("DEBUG: WebServiceUtility.annotationJSONLookup restURL = " + restURL);
 				url = new URL(restURL);
 				conn = (HttpURLConnection) url.openConnection();
 				conn.setRequestMethod("GET");
